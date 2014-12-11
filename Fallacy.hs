@@ -11,4 +11,4 @@ p = var 'p'
 q = var 'q'
 r = var 'r'
 
-fallacy1 = isTautology ((p `disj` q) `conj` p) `cond` (neg q)
+fallacy1 = isTautology $ ((p `disj` q) `conj` p) `cond` (neg q)
