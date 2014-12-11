@@ -1,0 +1,10 @@
+links:
+    https://downloads.haskell.org/~ghc/7.0.3/docs/html/Cabal/builders.html
+
+
+packages:
+    hatt  -> propositional logic (http://hackage.haskell.org/package/hatt-1.5.0.3)
+    Folly -> FOL (https://github.com/dillonhuff/Folly)
+    chatter -> POS tagging (http://hackage.haskell.org/package/chatter-0.1.0.4)
+
+
