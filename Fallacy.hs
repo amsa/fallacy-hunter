@@ -34,3 +34,4 @@ isFallacy :: Expr -> Bool
 isFallacy (Conditional left right) =
 	isTautology (left `cond` affirmingDisjunct_left) &&
 	isTautology (right `cond` affirmingDisjunct_right)
+isFallacy _ = False
