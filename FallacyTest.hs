@@ -40,10 +40,10 @@ affirmDisj_posTest = TestCase $ assertEqual "" True (isFallacy fol1)
 affirmDisj_negTest
 ========================================================================
 -}
-complexNotB = d `conj` (c `cond` b) 	-- NOT reducable to b
+complexSomething = d `conj` (c `cond` b) 	-- NOT reducable to b
 
 fol2_left = (complexA `disj` complexB) `conj` complexA2
-fol2_right = neg complexNotB
+fol2_right = neg complexSomething
 fol2 = fol2_left `cond` fol2_right
 
 affirmDisj_negTest = TestCase $ assertEqual "" False (isFallacy fol2)
@@ -68,11 +68,23 @@ affirmDisj_changedVariables_posTest =
 	TestCase $ assertEqual "" True (isFallacy fol3)
 
 
+{-
+========================================================================
+wrongFormat_Test
+========================================================================
+A fallacy pattern always has the form (expr1 => expr2).
+This tests if the function can handle expressions of a different format
+(which are therefore no fallacies) withour raised errors.
+-}
+fol4 = (a `conj` (neg a))
+wrongFormat_Test = TestCase $ assertEqual "" False (isFallacy fol4)
+
 
 
 
 tests = TestList [
 	TestLabel "affirmDisj_posTest" affirmDisj_posTest,
 	TestLabel "affirmDisj_negTest" affirmDisj_negTest,
-	TestLabel "affirmDisj_changedVariables_posTest" affirmDisj_changedVariables_posTest
+	TestLabel "affirmDisj_changedVariables_posTest" affirmDisj_changedVariables_posTest,
+	TestLabel "wrongFormat_Test" wrongFormat_Test
 	]
