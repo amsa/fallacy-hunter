@@ -1,4 +1,18 @@
+module Fallacy where
+
 import Data.Logic.Propositional
+
+
+type Subj = String
+type Pred = String
+type Obj = String
+
+data TripleTree = Triple Subj Pred Obj
+          | Neg TripleTree
+          | Conj TripleTree TripleTree
+          | Disj TripleTree TripleTree
+          | Cond TripleTree TripleTree
+          deriving (Eq, Show)
 
 var = Variable . Var
 neg = Negation
