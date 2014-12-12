@@ -57,10 +57,10 @@ affirmDisj a b = affirmDisj_left `cond` affirmDisj_right
 isFallacy
 ========================================================================
 
-Checks if the given expression is a fallacy. All detectable fallacies have
-	the form `expression1 => expression2`. If the given expression does not
-	have this form, it is not a fallacy (although it might contain a 
-	contradiction).
+Checks if the given expression contains one of the fallacies we implemented.
+	All detectable fallacies have the form `expression1 => expression2`. If 
+	the given expression does not have this form, it is regarded as not a 
+	fallacy (although it might contain a logical contradiction).
 
 parameters:	
 	Expr: the expression to be checked for contained fallacies
@@ -78,8 +78,8 @@ isFallacy (Conditional left right) = any isFallacyMapping varPairs
 		isFallacyMapping varPair = 
 			isTautology (left `cond` fallacy_left) && 
 			isTautology (right `cond` fallacy_right)
-
 			where
+				
 				(Conditional fallacy_left fallacy_right) =
 					affirmDisj (fst varPair) (snd varPair)
 
