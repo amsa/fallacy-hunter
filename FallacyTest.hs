@@ -12,7 +12,7 @@ import Data.Logic.Propositional
 
 {-
 ========================================================================
-affirmingDisjunct_pos_test
+affirmDisj_posTest
 ========================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
@@ -32,12 +32,12 @@ there is asertBool which has the functionality of 'assertTrue'
 but since it is called so confusingly, I preferred the unambiguous
 assertEquel True ...
 -}
-affirmingDisjunct_pos_test = TestCase $ assertEqual "" True (isFallacy fol1)
+affirmDisj_posTest = TestCase $ assertEqual "" True (isFallacy fol1)
 
 
 {-
 ========================================================================
-affirmingDisjunct_neg_test
+affirmDisj_negTest
 ========================================================================
 -}
 complexNotB = d `conj` (c `cond` b) 	-- NOT reducable to b
@@ -46,12 +46,33 @@ fol2_left = (complexA `disj` complexB) `conj` complexA2
 fol2_right = neg complexNotB
 fol2 = fol2_left `cond` fol2_right
 
-affirmingDisjunct_neg_test = TestCase $ assertEqual "" False (isFallacy fol2)
+affirmDisj_negTest = TestCase $ assertEqual "" False (isFallacy fol2)
+
+
+
+{-
+========================================================================
+affirmDisj_changedVariables_posTest
+========================================================================
+-}
+complexC = c `conj` c `conj` a 				-- reducable to c
+complexC2 = c `conj` (c `disj` a) 			-- reducable to c
+complexD = a `conj` (a `cond` d)			-- reducable to d
+complexNegD = (neg d) `conj` (a `disj` b) 	-- reducable to (NOT d)
+
+fol3_left = (complexC `disj` complexD) `conj` complexC2
+fol3_right = complexNegD
+fol3 = fol3_left `cond` fol3_right
+
+affirmDisj_changedVariables_posTest = 
+	TestCase $ assertEqual "" True (isFallacy fol3)
+
 
 
 
 
 tests = TestList [
-	TestLabel "affirmingDisjunct_pos_test" affirmingDisjunct_pos_test,
-	TestLabel "affirmingDisjunct_neg_test" affirmingDisjunct_neg_test
+	TestLabel "affirmDisj_posTest" affirmDisj_posTest,
+	TestLabel "affirmDisj_negTest" affirmDisj_negTest,
+	TestLabel "affirmDisj_changedVariables_posTest" affirmDisj_changedVariables_posTest
 	]
