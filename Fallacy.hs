@@ -22,25 +22,15 @@ cond = Conditional
 iff = Biconditional
 
 a = var 'a'
-p = var 'p'
-q = var 'q'
-r = var 'r'
+b = var 'b'
+c = var 'c'
+d = var 'd'
 
-affirmingDisjunctLeft = ((p `disj` q) `conj` p)
-affirmingDisjunctRight = (neg q)
-affirmingDisjunct = affirmingDisjunctLeft `cond` affirmingDisjunctRight
-
-fol1Left = (((p `conj` a) `disj` (q `conj` a)) `conj` (p `conj` a))
-fol1Right = ((neg q) `conj` a)
-fol1 = fol1Left `cond` fol1Right
-
-
-fol2 = fol1Left `cond` a
+affirmingDisjunct_left = (a `disj` b) `conj` a
+affirmingDisjunct_right = (neg b)
+affirmingDisjunct = affirmingDisjunct_left `cond` affirmingDisjunct_right
 
 isFallacy :: Expr -> Bool
 isFallacy (Conditional left right) =
-	isTautology (left `cond` affirmingDisjunctLeft) &&
-	isTautology (right `cond` affirmingDisjunctRight)
-
-test1 = isFallacy fol1 -- expected: true
-test2 = isFallacy fol2 -- expected: false
+	isTautology (left `cond` affirmingDisjunct_left) &&
+	isTautology (right `cond` affirmingDisjunct_right)
