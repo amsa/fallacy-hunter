@@ -2,14 +2,14 @@ import Test.HUnit
 import Fallacy
 
 import Data.Logic.Propositional
-a = var 'a'
-b = var 'b'
-c = var 'c'
-d = var 'd'
 --tests = test [ 
 --             "test triple" ~: "Triple(Max,is,cat)" ~: "Triple \"Max\" \"is\" \"cat\"" ~=? show(Triple "Max" "is" "cat")
 --             ]
 
+a = var 'a'
+b = var 'b'
+c = var 'c'
+d = var 'd'
 
 {-
 ========================================================================

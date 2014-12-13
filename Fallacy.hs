@@ -9,11 +9,6 @@ disj = Disjunction
 cond = Conditional
 iff = Biconditional
 
-a = var 'a'
-b = var 'b'
-c = var 'c'
-d = var 'd'
-
 
 {-
 ========================================================================
