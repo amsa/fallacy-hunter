@@ -28,7 +28,7 @@ d = var 'd'
 
 {-
 ========================================================================
-affirmDisj
+affirmDisjunct
 ========================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
@@ -43,13 +43,39 @@ returns:
 		replaced by the two variables given as parameters	
 -}
 
-affirmDisj :: Var -> Var -> Expr
-affirmDisj a b = affirmDisj_left `cond` affirmDisj_right
+affirmDisjunct :: Var -> Var -> Expr
+affirmDisjunct a b = affirmDisjunct_left `cond` affirmDisjunct_right
 	where
 		aExp = Variable a
 		bExp = Variable b
-		affirmDisj_left = (aExp `disj` bExp) `conj` aExp
-		affirmDisj_right = (neg bExp)
+		affirmDisjunct_left = (aExp `disj` bExp) `conj` aExp
+		affirmDisjunct_right = (neg bExp)
+
+
+{-
+========================================================================
+denyAntecedent
+========================================================================
+
+The pattern for 'Affirming a Disjunct' fallacy is
+(a OR b) AND a => NOT b
+
+parameters:	
+	Var: variable to be mapped as a in the formula above
+	Var: variable to be mapped as b in the formula above
+
+returns:
+	Expr: the expression `(a OR b) AND a => NOT b` with `a` and `b` being
+		replaced by the two variables given as parameters	
+-}
+
+denyAntecedent :: Var -> Var -> Expr
+denyAntecedent a b = denyAntecedent_left `cond` denyAntecedent_right
+	where
+		aExp = Variable a
+		bExp = Variable b
+		denyAntecedent_left = (aExp `disj` bExp) `conj` aExp
+		denyAntecedent_right = (neg bExp)
 
 
 {-
@@ -58,9 +84,9 @@ isFallacy
 ========================================================================
 
 Checks if the given expression contains one of the fallacies we implemented.
-	All detectable fallacies have the form `expression1 => expression2`. If 
-	the given expression does not have this form, it is regarded as not a 
-	fallacy (although it might contain a logical contradiction).
+All detectable fallacies have the form `expression1 => expression2`. If the
+given expression does not have this form, it is regarded as not a fallacy 
+(although it might contain a logical contradiction).
 
 parameters:	
 	Expr: the expression to be checked for contained fallacies
@@ -79,9 +105,9 @@ isFallacy (Conditional left right) = any isFallacyMapping varPairs
 			isTautology (left `cond` fallacy_left) && 
 			isTautology (right `cond` fallacy_right)
 			where
-				
+
 				(Conditional fallacy_left fallacy_right) =
-					affirmDisj (fst varPair) (snd varPair)
+					affirmDisjunct (fst varPair) (snd varPair)
 
 		varPairs = [(a, b) | a <- variables left, b <- variables left]
 
