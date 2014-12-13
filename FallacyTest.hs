@@ -128,11 +128,39 @@ denyAntecedent_posTest = assertEqualTest True (isFallacy expr)
 
 
 
+{-
+========================================================================
+affirmConseq_posTest
+========================================================================
 
+The pattern for 'Affirming the consequent' fallacy is
+(a => b) AND b => a
+-}
+
+affirmConseq_posTest = assertEqualTest True (isFallacy expr)
+	where
+		complexA = neg $ neg $ a 					-- reducable to a
+		complexA2 = neg (c `disj` (neg a)) 			-- reducable to a
+		complexB = neg ((neg b) `disj` d) 			-- reducable to b
+		complexB2 = (b `disj` c) `conj` (neg c) 	-- reducable to (NOT b)
+
+		expr_left = (complexA `cond` complexB) `conj` complexB2
+		expr_right = complexA2 `conj` complexB
+		expr = expr_left `cond` expr_right
+
+
+
+
+{-
+========================================================================
+collection of all tests
+========================================================================
+-}
 tests = TestList [
 	TestLabel "affirmDisjunct_posTest" affirmDisjunct_posTest,
 	TestLabel "affirmDisjunct_negTest" affirmDisjunct_negTest,
 	TestLabel "affirmDisjunct_changedVars_posTest" affirmDisjunct_changedVars_posTest,
 	TestLabel "wrongFormat_Test" wrongFormat_Test,
-	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest
+	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest,
+	TestLabel "affirmConseq_posTest" affirmConseq_posTest
 	]
