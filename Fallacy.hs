@@ -26,6 +26,7 @@ b = var 'b'
 c = var 'c'
 d = var 'd'
 
+
 {-
 ========================================================================
 affirmDisjunct
@@ -57,16 +58,16 @@ affirmDisjunct a b = affirmDisjunct_left `cond` affirmDisjunct_right
 denyAntecedent
 ========================================================================
 
-The pattern for 'Affirming a Disjunct' fallacy is
-(a OR b) AND a => NOT b
+The pattern for 'Denying the antecedent' fallacy is
+(a => b) AND (NOT a) => NOT b
 
 parameters:	
 	Var: variable to be mapped as a in the formula above
 	Var: variable to be mapped as b in the formula above
 
 returns:
-	Expr: the expression `(a OR b) AND a => NOT b` with `a` and `b` being
-		replaced by the two variables given as parameters	
+	Expr: the expression `(a => b) AND (NOT a) => NOT b` with `a` and `b` 
+		being replaced by the two variables given as parameters	
 -}
 
 denyAntecedent :: Var -> Var -> Expr
@@ -74,7 +75,7 @@ denyAntecedent a b = denyAntecedent_left `cond` denyAntecedent_right
 	where
 		aExp = Variable a
 		bExp = Variable b
-		denyAntecedent_left = (aExp `disj` bExp) `conj` aExp
+		denyAntecedent_left = (aExp `cond` bExp) `conj` (neg aExp)
 		denyAntecedent_right = (neg bExp)
 
 
@@ -84,9 +85,6 @@ isFallacy
 ========================================================================
 
 Checks if the given expression contains one of the fallacies we implemented.
-All detectable fallacies have the form `expression1 => expression2`. If the
-given expression does not have this form, it is regarded as not a fallacy 
-(although it might contain a logical contradiction).
 
 parameters:	
 	Expr: the expression to be checked for contained fallacies
@@ -100,15 +98,18 @@ isFallacy :: Expr -> Bool
 isFallacy (Conditional left right) = any isFallacyMapping varPairs
 	where
 
+		fallacies = [affirmDisjunct, denyAntecedent]
+		
+		varPairs = [(a, b) | a <- variables left, b <- variables left]		
+
 		isFallacyMapping :: (Var, Var) -> Bool
-		isFallacyMapping varPair = 
-			isTautology (left `cond` fallacy_left) && 
-			isTautology (right `cond` fallacy_right)
+		isFallacyMapping varPair = any (impliesFallacy varPair) fallacies
+
+		impliesFallacy :: (Var, Var) -> (Var -> Var -> Expr) -> Bool
+		impliesFallacy (a, b) fallacyFunc = 
+			isTautology $ (left `cond` fal_left) `conj` (right `cond` fal_right)
 			where
 
-				(Conditional fallacy_left fallacy_right) =
-					affirmDisjunct (fst varPair) (snd varPair)
-
-		varPairs = [(a, b) | a <- variables left, b <- variables left]
+				(Conditional fal_left fal_right) = fallacyFunc a b
 
 isFallacy _ = False

@@ -17,7 +17,12 @@ assertEqualTest
 a shortcut for creating TestCase elements of the form
 testName = TestCase $ assertEqual "" True (someExpression)
 
+parameters:
+	a:	expected value
+	a:	actual value
 
+returns:
+	the test resulting from comparing expected with actual value
 -}
 assertEqualTest :: (Eq a, Show a) => a -> a -> Test
 assertEqualTest expected actual = 
@@ -122,25 +127,6 @@ denyAntecedent_posTest = assertEqualTest True (isFallacy expr)
 		expr = expr_left `cond` expr_right
 
 
-{-
-========================================================================
-denyAntecedent_negTest
-========================================================================
-The pattern for 'Denying the antecedent' fallacy is
-(a => b) AND (NOT a) => NOT b
--}
-
-denyAntecedent_negTest = assertEqualTest False (isFallacy expr)
-	where
-		complexA = a `conj` a `conj` a 		-- reducable to a
-		complexNegA = neg (c `disj` a) 		-- reducable to (NOT a)
-		complexSomething = d `disj` b 		-- NOT reducable to b
-		complexNegB = neg $ neg $ neg b 	-- reducable to (NOT b)
-
-		expr_left = (complexA `cond` complexSomething) `conj` complexNegA
-		expr_right = complexNegB
-		expr = expr_left `cond` expr_right
-
 
 
 tests = TestList [
@@ -148,6 +134,5 @@ tests = TestList [
 	TestLabel "affirmDisjunct_negTest" affirmDisjunct_negTest,
 	TestLabel "affirmDisjunct_changedVars_posTest" affirmDisjunct_changedVars_posTest,
 	TestLabel "wrongFormat_Test" wrongFormat_Test,
-	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest,
-	TestLabel "denyAntecedent_negTest" denyAntecedent_negTest
+	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest
 	]
