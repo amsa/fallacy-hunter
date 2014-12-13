@@ -87,4 +87,4 @@ tests = TestList [
 	TestLabel "affirmDisj_negTest" affirmDisj_negTest,
 	TestLabel "affirmDisj_changedVariables_posTest" affirmDisj_changedVariables_posTest,
 	TestLabel "wrongFormat_Test" wrongFormat_Test
-	]
+    ]
