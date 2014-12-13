@@ -142,7 +142,7 @@ affirmConseq_posTest = assertEqualTest True (isFallacy expr)
 		complexA = neg $ neg $ a 					-- reducable to a
 		complexA2 = neg (c `disj` (neg a)) 			-- reducable to a
 		complexB = neg ((neg b) `disj` d) 			-- reducable to b
-		complexB2 = (b `disj` c) `conj` (neg c) 	-- reducable to (NOT b)
+		complexB2 = (b `disj` c) `conj` (neg c) 	-- reducable to b
 
 		expr_left = (complexA `cond` complexB) `conj` complexB2
 		expr_right = complexA2 `conj` complexB
