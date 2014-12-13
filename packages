@@ -5,6 +5,7 @@ links:
 packages:
     hatt  -> propositional logic (http://hackage.haskell.org/package/hatt-1.5.0.3)
     Folly -> FOL (https://github.com/dillonhuff/Folly)
-    chatter -> POS tagging (http://hackage.haskell.org/package/chatter-0.1.0.4)
+    chatter -> POS tagging (http://hackage.haskell.org/package/chatter-0.5.0.0)
+    stemmer -> stemmer (https://hackage.haskell.org/package/stemmer-0.5/docs/NLP-Stemmer.html)
 
 
