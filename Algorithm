@@ -12,4 +12,5 @@
     (Stemming seperates the sentences with "." as different array elements
     so that we get different knowledge set for separate variable)
 4. Tag the sentence (stemming before so that we get the same tags for the same verb but represented in different format)
-5. 
+5. Extract the Premise and the conclusion part.
+6. Make the Premise and the conclusion part, separately into well formed expression 

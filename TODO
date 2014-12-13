@@ -1,2 +1,8 @@
 1. Make the NOT at the end, i.e after doing And and Or
 2. Make the conclusion part also opeartor handled (i.e and & or)
+
+
+** Dont' forget to compile the code using ghc, so that there is not need to install the packages
+for the user to run the code
+
+
