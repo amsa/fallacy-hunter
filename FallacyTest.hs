@@ -151,6 +151,28 @@ affirmConseq_posTest = assertEqualTest True (isFallacy expr)
 		expr = expr_left `cond` expr_right
 
 
+{-
+========================================================================
+affirmConseq_posTest2
+========================================================================
+
+The pattern for 'Affirming the consequent' fallacy is
+(a => b) AND b => a
+
+Since some expressions, like the one in affirmConseq_posTest, contain both, 
+'Affirming the consequent' fallacy and 'Denying the antecedent' fallacy,
+this tests "pure" 'Affirming the consequent' fallacy (which is not 'Denying 
+the antecedent' fallacy)
+-}
+
+affirmConseq_posTest2 = assertEqualTest True (isFallacy expr)
+	where
+		expr_left = (a `cond` b) `conj` b
+		expr_right = a
+		expr = expr_left `cond` expr_right
+
+
+
 
 
 {-
@@ -164,5 +186,6 @@ tests = TestList [
 	TestLabel "affirmDisjunct_changedVars_posTest" affirmDisjunct_changedVars_posTest,
 	TestLabel "wrongFormat_Test" wrongFormat_Test,
 	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest,
-	TestLabel "affirmConseq_posTest" affirmConseq_posTest
+	TestLabel "affirmConseq_posTest" affirmConseq_posTest,
+	TestLabel "affirmConseq_posTest2" affirmConseq_posTest2
 	]
