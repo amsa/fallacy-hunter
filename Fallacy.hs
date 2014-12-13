@@ -28,17 +28,17 @@ parameters:
 	Var: variable to be mapped as b in the formula above
 
 returns:
-	Expr: the expression `(a OR b) AND a => NOT b` with `a` and `b` being
-		replaced by the two variables given as parameters	
+	Expr: the expression as defined above with `a` and `b` being replaced 
+		by the two variables given as parameters	
 -}
 
 affirmDisjunct :: Var -> Var -> Expr
-affirmDisjunct a b = affirmDisjunct_left `cond` affirmDisjunct_right
+affirmDisjunct a b = left `cond` right
 	where
 		aExp = Variable a
 		bExp = Variable b
-		affirmDisjunct_left = (aExp `disj` bExp) `conj` aExp
-		affirmDisjunct_right = (neg bExp)
+		left = (aExp `disj` bExp) `conj` aExp
+		right = (neg bExp)
 
 
 {-
@@ -54,17 +54,43 @@ parameters:
 	Var: variable to be mapped as b in the formula above
 
 returns:
-	Expr: the expression `(a => b) AND (NOT a) => NOT b` with `a` and `b` 
-		being replaced by the two variables given as parameters	
+	Expr: the expression as defined above with `a` and `b` being replaced 
+		by the two variables given as parameters	
 -}
 
 denyAntecedent :: Var -> Var -> Expr
-denyAntecedent a b = denyAntecedent_left `cond` denyAntecedent_right
+denyAntecedent a b = left `cond` right
 	where
 		aExp = Variable a
 		bExp = Variable b
-		denyAntecedent_left = (aExp `cond` bExp) `conj` (neg aExp)
-		denyAntecedent_right = (neg bExp)
+		left = (aExp `cond` bExp) `conj` (neg aExp)
+		right = (neg bExp)
+
+
+{-
+========================================================================
+affirmConsequent
+========================================================================
+
+The pattern for 'Affirming the Consequent' fallacy is
+(a => b) AND b => a
+
+parameters:	
+	Var: variable to be mapped as a in the formula above
+	Var: variable to be mapped as b in the formula above
+
+returns:
+	Expr: the expression as defined above with `a` and `b` being replaced 
+		by the two variables given as parameters	
+-}
+
+affirmConsequent :: Var -> Var -> Expr
+affirmConsequent a b = left `cond` right
+	where
+		aExp = Variable a
+		bExp = Variable b
+		left = (aExp `cond` bExp) `conj` bExp
+		right = aExp
 
 
 {-
@@ -85,7 +111,7 @@ isFallacy :: Expr -> Bool
 isFallacy (Conditional left right) = any isFallacyMapping varPairs
 	where
 
-		fallacies = [affirmDisjunct, denyAntecedent]
+		fallacies = [affirmDisjunct, denyAntecedent, affirmConsequent]
 		
 		varPairs = [(a, b) | a <- variables left, b <- variables left]		
 
