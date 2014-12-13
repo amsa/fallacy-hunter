@@ -1,5 +1,6 @@
 module Fallacy where
 
+import qualified Data.Map as M
 import Data.Logic.Propositional
 import qualified Data.Text as T
 import qualified Data.Char as Char 
@@ -89,8 +90,34 @@ extractPremiseConclusionAll sentence = do
 toString :: [[(String, b)]] -> [String]
 toString sentList = foldr (\l acc -> unwords [fst x | x <- l]:acc) [] sentList
 
-{-extractKeywords -}
+removeNot :: String -> String
+removeNot sent = unwords $ foldr (\w acc -> if w == "not" then acc else w:acc) [] (words sent)
 
+replaceKeywords :: ([[(String, b)]], [[(String, b1)]]) -> ([Expr], [Expr])
+replaceKeywords (premise, conclusion) = 
+        let (psent, qsent) = (toString premise, toString conclusion)
+            lst = psent ++ qsent
+            varMap = foldr (\s acc -> 
+                           let sent = removeNot s
+                               in if M.member sent acc then acc 
+                                             else M.insert sent (Char.chr(M.size acc+96)) acc
+                                             ) (M.fromList [("", '_')]) lst
+            finalMap = M.delete "" varMap
+            in (sentToFormula finalMap psent, sentToFormula finalMap qsent)
+
+getVarName :: Maybe Char -> Char
+getVarName (Just x) = x
+getVarName _ = '_'
+
+sentToFormula :: M.Map String Char -> [String] -> [Expr]
+sentToFormula varMap sent = 
+        foldr (\s acc -> 
+              let sw = words s 
+                  hasNot = if "not" `elem` sw then True else False
+                  cleanedSent = if hasNot then removeNot s else s
+                  varName = getVarName $ M.lookup cleanedSent varMap
+                  sentVar = if hasNot then neg $ var varName else var varName
+                  in sentVar:acc) [] sent
 
 toLower :: String -> String
 toLower word = map (\c -> Char.toLower c) word
