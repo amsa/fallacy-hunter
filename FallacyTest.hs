@@ -126,14 +126,20 @@ denyAntecedent_posTest = assertEqualTest True (isFallacy expr)
 ========================================================================
 denyAntecedent_negTest
 ========================================================================
+The pattern for 'Denying the antecedent' fallacy is
+(a => b) AND (NOT a) => NOT b
 -}
---complexSomething = d `conj` (c `cond` b) 	-- NOT reducable to b
 
---fol2_left = (complexA `disj` complexB) `conj` complexA2
---fol2_right = neg complexSomething
---fol2 = fol2_left `cond` fol2_right
+denyAntecedent_negTest = assertEqualTest False (isFallacy expr)
+	where
+		complexA = a `conj` a `conj` a 		-- reducable to a
+		complexNegA = neg (c `disj` a) 		-- reducable to (NOT a)
+		complexSomething = d `disj` b 		-- NOT reducable to b
+		complexNegB = neg $ neg $ neg b 	-- reducable to (NOT b)
 
---denyAntecedent_negTest = assertEqualTest False (isFallacy fol2)
+		expr_left = (complexA `cond` complexSomething) `conj` complexNegA
+		expr_right = complexNegB
+		expr = expr_left `cond` expr_right
 
 
 
@@ -142,5 +148,6 @@ tests = TestList [
 	TestLabel "affirmDisjunct_negTest" affirmDisjunct_negTest,
 	TestLabel "affirmDisjunct_changedVars_posTest" affirmDisjunct_changedVars_posTest,
 	TestLabel "wrongFormat_Test" wrongFormat_Test,
-	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest
+	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest,
+	TestLabel "denyAntecedent_negTest" denyAntecedent_negTest
 	]
