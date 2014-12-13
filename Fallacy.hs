@@ -22,6 +22,11 @@ data TripleTree = Triple Subj Pred Obj
           | Cond TripleTree TripleTree
           deriving (Eq, Show)
 
+puncList, conclusionWordList, stopWords :: [String]
+puncList = [",", ".", ";", ":"]
+conclusionWordList = ["therefore", "so", "hence"]
+stopWords = ["do", "does", "a", "an", "the", "of", "to"]
+
 var = Variable . Var
 neg = Negation
 conj = Conjunction
@@ -50,22 +55,25 @@ tagStringTuple input = do
                        foldl (\acc p -> 
                              let tok = T.unpack $ Types.showPOStok p
                                  pos = T.unpack $ Types.showPOStag p
-                                 in acc ++ [(tok, pos)]) [] s
+                                 in acc ++ [(toLower tok, pos)]) [] s
                         ) posList
             in return (tags)
 
+removePunc :: [(String, b)] -> [(String, b)]
+removePunc = foldr (\tuple acc -> if (fst tuple) `elem` puncList then acc else tuple:acc) []
 
-{-extractKeywords :: String -> IO [(UnaryOp, String)]-}
-extractKeywords sentence = do 
+removeConclusionWords :: [(String, b)] -> [(String, b)]
+removeConclusionWords = foldr (\tuple acc -> if (fst tuple) `elem` conclusionWordList then acc else tuple:acc) []
+
+extractPremiseConclusion :: [([Char], b)] -> ([([Char], b)], [([Char], b)])
+extractPremiseConclusion = span (\e -> (fst e) `notElem` conclusionWordList) 
+
+extractPremiseConclusionAll :: String -> IO ([[(String, String)]], [[(String, String)]])
+extractPremiseConclusionAll sentence = do 
                   tagged <- tagStringTuple (setSentBoundaries $ stemString sentence)
-                  let conclusionWordList = ["therefore", "so", "hence"]
-                      t = map (\s -> 
-                              let 
-                              (premise, conclusion) = foldr (\w acc -> 
-                                let sec = snd acc in
-                                  if (length sec > 0 && head sec `elem` conclusionWordList) then (fst w:fst acc, snd acc) 
-                                      else (fst acc, fst w:snd acc)
-                                      ) ([], []) s 
+                  let t = map (\s -> 
+                              let (p, q) = extractPremiseConclusion s 
+                                  in (removePunc p, removeConclusionWords $ removePunc q)
 
                               {-(notList, sentWords) = foldr (\w acc -> -}
                                 {-if fst w == "not" then ("not":fst acc, snd acc) else (fst acc, fst w:snd acc)) ([], []) s-}
@@ -73,9 +81,15 @@ extractKeywords sentence = do
                               {-sent = unwords $ foldr (\w acc -> if length w > 0 then w:acc else acc) [] sentWords-}
                               {-notVal = if even $ length notList then None else Not-}
                               {-in (notVal, sent)-}
-                              in (premise, conclusion)
-                              ) tagged
-                      in return (t)
+                              {-in (premise, conclusion)-}
+                              ) tagged 
+                      (premise, conclusion) = foldr (\(p, q) acc -> if length p > 0 then (p:fst acc, snd acc) else (fst acc, q:snd acc)) ([], []) t
+                        in return (premise, conclusion)
+
+toString :: [[(String, b)]] -> [String]
+toString sentList = foldr (\l acc -> unwords [fst x | x <- l]:acc) [] sentList
+
+{-extractKeywords -}
 
 
 toLower :: String -> String
@@ -85,13 +99,12 @@ setSentBoundaries :: String -> String
 setSentBoundaries sentence = unwords $ map (\w -> case w of 
                              "and" -> "."
                              "," -> "."
-                             _ -> toLower w) $ words sentence
+                             _ -> w) $ words sentence
 
 
 stemString :: String -> String
 stemString input = 
-        let stopWords = ["do", "does", "a", "an", "the", "of", "to"]
-            filtered = filter (\s -> (toLower s) `notElem` stopWords) $ words input 
+        let filtered = filter (\s -> (toLower s) `notElem` stopWords) $ words input 
             in unwords $ map (stem English) $ filtered
 
 {-
