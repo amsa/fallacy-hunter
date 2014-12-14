@@ -15,7 +15,14 @@ data Formula = Nil
           | Conj Formula Formula
           | Disj Formula Formula
           | Cond Formula Formula
-          deriving (Eq, Show)
+          deriving (Eq)
+instance Show Formula where 
+        show (Sentence s) = "\"" ++ s ++ "\""
+        show (Neg f) = "NOT " ++ show(f)
+        show (Conj l r) = "(" ++ show(l) ++ ") AND (" ++ show(r) ++ ")"
+        show (Disj l r) = "(" ++ show(l) ++ ") OR (" ++ show(r) ++ ")"
+        show (Cond l r) = "(" ++ show(l) ++ ") => (" ++ show(r)  ++ ")"
+        show _ = ""
 
 sentStr (Sentence x) = x
 sentWords (Sentence x) = words x
@@ -125,8 +132,6 @@ sentToExpr varMap sent =
         foldr (\s acc -> 
               let sw = words s 
                   hasNot = if "not" `elem` sw then True else False
-                  {-hasOr = if "or" `elem` sw then True else False-}
-                  {-hasIf = if "if" `elem` sw && "then" `elem` sw then True else False-}
                   cleanedSent = if hasNot then removeWord "not" s else s
                   varName = getVarName $ M.lookup cleanedSent varMap
                   sentVar = if hasNot then neg $ var varName else var varName
@@ -143,8 +148,16 @@ reduceDisj [] = error "Empty expression list is given"
 reduceDisj [x] = x
 reduceDisj (s:sx) = Disj s (reduceDisj sx)
 
+reduceAllDisj :: [[Formula]] -> [Formula]
+reduceAllDisj frm = foldr (\l acc -> if length l > 1 then (reduceDisj $ reverse l):acc else (head l):acc) [] frm
 
-reduceAllDisj frm = if length frm > 0 then reduceDisj $ reverse $ head frm else Nil 
+reduceConj :: [Formula] -> Formula
+reduceConj [] = error "Empty expression list is given"
+reduceConj [x] = x
+reduceConj (s:sx) = Conj s (reduceConj sx)
+
+reduceAllConj :: [Formula] -> Formula
+reduceAllConj frm = if length frm > 0 then reduceConj frm else Nil
 
 extractIf :: [Formula] -> [Formula]
 extractIf sentList = foldr (\s acc -> 
@@ -156,18 +169,42 @@ extractIf sentList = foldr (\s acc ->
                                 else s:acc
                                 ) [] sentList
 
-{-extractDisj :: String -> Formula-}
-extractDisj (Neg p) = extractDisj p
+extractDisj :: Formula -> [Formula]
 extractDisj (Cond l r) = extractDisj l ++ extractDisj r
 extractDisj (Conj l r) = extractDisj l ++ extractDisj r
+extractDisj (Neg p) = extractDisj p
 extractDisj (Sentence s) = 
         if "or" `elem` (words s)
         then map (Sentence) (Split.splitOn " or " s)
         else [Sentence s]
 
+extractNot t@(Sentence s) = if "not" `elem` (words s) then (Neg $ Sentence (removeWord "not" s)) else t
+extractNot (Cond l r) = Cond (extractNot l) (extractNot r)
+extractNot (Conj l r) = Conj (extractNot l) (extractNot r)
+extractNot (Disj l r) = Disj (extractNot l) (extractNot r)
+extractNot (Neg p) = extractNot p
+
+extractSent :: Formula -> [String]
+extractSent (Sentence s) = [s]
+extractSent (Neg s) = extractSent s
+extractSent (Cond l r) = extractSent l ++ extractSent r
+extractSent (Conj l r) = extractSent l ++ extractSent r
+extractSent (Disj l r) = extractSent l ++ extractSent r
+extractSent _ = []
 
 toSentList :: [String] -> [Formula]
 toSentList = map (Sentence)
+
+makeVarMap :: (Formula, Formula) -> M.Map [Char] Char
+makeVarMap (premise, conclusion) = 
+        let lst = premise:[conclusion]
+            sentList = foldr (\s acc -> (extractSent s) ++ acc ) [] lst
+            varMap = foldr (\sent acc -> if M.member sent acc 
+                                      then acc 
+                                      else M.insert sent (Char.chr(M.size acc+96)) acc
+                            ) (M.fromList [("", '_')]) sentList
+            in M.delete "" varMap
+
 
 parseKeywords (premise, conclusion) = 
         let (psents, qsents) = (toString premise, toString conclusion)
@@ -175,8 +212,10 @@ parseKeywords (premise, conclusion) =
             (pIfExtracted, qIfExtracted) = (extractIf psentList, extractIf qsentList)
             (pDisjExtracted, qDisjExtracted) = (map (extractDisj) pIfExtracted, map (extractDisj) qIfExtracted)
             (pDisjReduced, qDisjReduced) = (reduceAllDisj pDisjExtracted, reduceAllDisj qDisjExtracted)
-            in (pDisjReduced, qDisjReduced)
-
+            (pNotRemoved, qNotRemoved) = (map (extractNot) pDisjReduced, map (extractNot) qDisjReduced)
+            t = (reduceAllConj pNotRemoved, reduceAllConj qNotRemoved)
+            {-varMap = makeVarMap t-}
+            in t
 
 
 parseSent :: String -> IO String
