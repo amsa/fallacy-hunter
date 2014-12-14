@@ -9,19 +9,16 @@ import qualified NLP.Types.Tree as Types
 import NLP.Corpora.Conll (Tag)
 import NLP.Stemmer
 
-
-type Subj = String
-type Pred = String
-type Obj = String
-
-data UnaryOp = Not | None deriving (Show)
-
-data TripleTree = Triple Subj Pred Obj
-          | Neg TripleTree
-          | Conj TripleTree TripleTree
-          | Disj TripleTree TripleTree
-          | Cond TripleTree TripleTree
+data Formula = Nil 
+          | Sentence String
+          | Neg Formula
+          | Conj Formula Formula
+          | Disj Formula Formula
+          | Cond Formula Formula
           deriving (Eq, Show)
+
+sentStr (Sentence x) = x
+sentWords (Sentence x) = words x
 
 puncList, conclusionWordList, stopWords :: [String]
 puncList = [",", ".", ";", ":"]
@@ -94,20 +91,13 @@ extractPremiseConclusionAll :: String -> IO ([[(String, String)]], [[(String, St
 extractPremiseConclusionAll sentence = do 
                   tagged <- tagStringTuple (setSentBoundaries $ stemString sentence)
                   let t = map (\s -> 
-                              let (p, q) = extractPremiseConclusion s 
-                                  in (removePunc p, removeConclusionWords $ removePunc q)
-
-                              {-(notList, sentWords) = foldr (\w acc -> -}
-                                {-if fst w == "not" then ("not":fst acc, snd acc) else (fst acc, fst w:snd acc)) ([], []) s-}
-
-                              {-sent = unwords $ foldr (\w acc -> if length w > 0 then w:acc else acc) [] sentWords-}
-                              {-notVal = if even $ length notList then None else Not-}
-                              {-in (notVal, sent)-}
-                              {-in (premise, conclusion)-}
+                              let (p, q) = extractPremiseConclusion s in (removePunc p, removeConclusionWords $ removePunc q)
                               ) tagged 
-                      (premise, conclusion) = foldr (\(p, q) acc -> if length p > 0 then (p:fst acc, snd acc) else (fst acc, q:snd acc)) ([], []) t
+                      (premise, conclusion) = foldr (\(p, q) acc -> if length p > 0 
+                                                                        then (p:fst acc, snd acc) 
+                                                                        else (fst acc, q:snd acc)
+                                                                        ) ([], []) t
                         in return (premise, conclusion)
-
 toString :: [[(String, b)]] -> [String]
 toString sentList = foldr (\l acc -> unwords [fst x | x <- l]:acc) [] sentList
 
@@ -124,14 +114,14 @@ replaceKeywords (premise, conclusion) =
                                              else M.insert sent (Char.chr(M.size acc+96)) acc
                                              ) (M.fromList [("", '_')]) lst
             finalMap = M.delete "" varMap
-            in (sentToFormula finalMap psent, sentToFormula finalMap qsent)
+            in (sentToExpr finalMap psent, sentToExpr finalMap qsent)
 
 getVarName :: Maybe Char -> Char
 getVarName (Just x) = x
 getVarName _ = '_'
 
-sentToFormula :: M.Map String Char -> [String] -> [Expr]
-sentToFormula varMap sent = 
+sentToExpr :: M.Map String Char -> [String] -> [Expr]
+sentToExpr varMap sent = 
         foldr (\s acc -> 
               let sw = words s 
                   hasNot = if "not" `elem` sw then True else False
@@ -146,6 +136,48 @@ reduceAnd :: [Expr] -> Expr
 reduceAnd [] = error "Empty expression list is given"
 reduceAnd [x] = x
 reduceAnd (s:sx) = conj s (reduceAnd sx)
+
+
+reduceDisj :: [Formula] -> Formula
+reduceDisj [] = error "Empty expression list is given"
+reduceDisj [x] = x
+reduceDisj (s:sx) = Disj s (reduceDisj sx)
+
+
+reduceAllDisj frm = if length frm > 0 then reduceDisj $ reverse $ head frm else Nil 
+
+extractIf :: [Formula] -> [Formula]
+extractIf sentList = foldr (\s acc -> 
+                         let sw = sentWords s
+                             in if "if" `elem` sw && "then" `elem` sw 
+                                then let removedIf = removeWord "if" (sentStr s)
+                                         tmp = Split.splitOn " then " removedIf 
+                                         in Cond (Sentence $ removeWord "if" $ head tmp) (Sentence $ last tmp):acc
+                                else s:acc
+                                ) [] sentList
+
+{-extractDisj :: String -> Formula-}
+extractDisj (Neg p) = extractDisj p
+extractDisj (Cond l r) = extractDisj l ++ extractDisj r
+extractDisj (Conj l r) = extractDisj l ++ extractDisj r
+extractDisj (Sentence s) = 
+        if "or" `elem` (words s)
+        then map (Sentence) (Split.splitOn " or " s)
+        else [Sentence s]
+
+
+toSentList :: [String] -> [Formula]
+toSentList = map (Sentence)
+
+parseKeywords (premise, conclusion) = 
+        let (psents, qsents) = (toString premise, toString conclusion)
+            (psentList, qsentList) = (toSentList psents, toSentList qsents)
+            (pIfExtracted, qIfExtracted) = (extractIf psentList, extractIf qsentList)
+            (pDisjExtracted, qDisjExtracted) = (map (extractDisj) pIfExtracted, map (extractDisj) qIfExtracted)
+            (pDisjReduced, qDisjReduced) = (reduceAllDisj pDisjExtracted, reduceAllDisj qDisjExtracted)
+            in (pDisjReduced, qDisjReduced)
+
+
 
 parseSent :: String -> IO String
 parseSent sentence = do
