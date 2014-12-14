@@ -1,5 +1,4 @@
-module Fallacy where
-
+import Control.Monad  
 import qualified Data.Map as M
 import Data.Logic.Propositional
 import qualified Data.Text as T
@@ -35,6 +34,11 @@ disj = Disjunction
 cond = Conditional
 iff = Biconditional
 
+main = forever $ do  
+               putStr "> "  
+               l <- getLine
+               res <- parseSent l
+               putStrLn $ "Is fallacy? " ++ show(res)
 {- tagString
 - parses the input string, and handles POS tagging
 -
@@ -135,15 +139,23 @@ sentToFormula varMap sent =
                   sentVar = if hasNot then neg $ var varName else var varName
                   in sentVar:acc) [] sent
 
+{-reduceAnd :: [Expr] -> Expr-}
+{-reduceAnd [] = error "Empty expression list is given"-}
+{-reduceAnd expr = foldr (\e acc -> conj e acc) (head expr) (tail expr)-}
+
+
 reduceAnd :: [Expr] -> Expr
 reduceAnd [] = error "Empty expression list is given"
-reduceAnd expr = foldr (\e acc -> conj e acc) (head expr) (tail expr)
+reduceAnd [x] = x
+reduceAnd (s:sx) = conj s (reduceAnd sx)
 
-{-parseSent :: String -> IO Bool-}
+parseSent :: String -> IO String
 parseSent sentence = do
         t <- extractPremiseConclusionAll sentence
         let (p, q) = replaceKeywords t
-            result = isFallacy $ Conditional (reduceAnd p) (reduceAnd q)
+            result = if length p < 2 && length q < 2 
+                         then "Not enough propositions given." 
+                         else show $ isFallacy $ Conditional (reduceAnd p) (reduceAnd q)
             in return (result)
 
 
