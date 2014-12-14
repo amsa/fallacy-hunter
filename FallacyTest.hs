@@ -172,6 +172,11 @@ affirmConseq_posTest2 = assertEqualTest True (isFallacy expr)
 		expr = expr_left `cond` expr_right
 
 
+noFallacyTest1 = assertEqualTest False (isFallacy expr)
+	where
+		expr_left = (neg a) `conj` b 
+		expr_right = neg a 
+		expr = expr_left `cond` expr_right
 
 
 
@@ -187,5 +192,6 @@ tests = TestList [
 	TestLabel "wrongFormat_Test" wrongFormat_Test,
 	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest,
 	TestLabel "affirmConseq_posTest" affirmConseq_posTest,
-	TestLabel "affirmConseq_posTest2" affirmConseq_posTest2
+	TestLabel "affirmConseq_posTest2" affirmConseq_posTest2,
+	TestLabel "noFallacyTest1" noFallacyTest1
 	]
