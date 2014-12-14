@@ -60,6 +60,22 @@ tagStringTuple input = do
                         ) posList
             in return (tags)
 
+toLower :: String -> String
+toLower word = map (\c -> Char.toLower c) word
+
+setSentBoundaries :: String -> String
+setSentBoundaries sentence = unwords $ map (\w -> case w of 
+                             "and" -> "."
+                             "," -> "."
+                             _ -> w) $ words sentence
+
+
+stemString :: String -> String
+stemString input = 
+        let filtered = filter (\s -> (toLower s) `notElem` stopWords) $ words input 
+            in unwords $ map (stem English) $ filtered
+
+
 removePunc :: [(String, b)] -> [(String, b)]
 removePunc = foldr (\tuple acc -> if (fst tuple) `elem` puncList then acc else tuple:acc) []
 
@@ -119,20 +135,17 @@ sentToFormula varMap sent =
                   sentVar = if hasNot then neg $ var varName else var varName
                   in sentVar:acc) [] sent
 
-toLower :: String -> String
-toLower word = map (\c -> Char.toLower c) word
+reduceAnd :: [Expr] -> Expr
+reduceAnd [] = error "Empty expression list is given"
+reduceAnd expr = foldr (\e acc -> conj e acc) (head expr) (tail expr)
 
-setSentBoundaries :: String -> String
-setSentBoundaries sentence = unwords $ map (\w -> case w of 
-                             "and" -> "."
-                             "," -> "."
-                             _ -> w) $ words sentence
+{-parseSent :: String -> IO Bool-}
+parseSent sentence = do
+        t <- extractPremiseConclusionAll sentence
+        let (p, q) = replaceKeywords t
+            result = isFallacy $ Conditional (reduceAnd p) (reduceAnd q)
+            in return (result)
 
-
-stemString :: String -> String
-stemString input = 
-        let filtered = filter (\s -> (toLower s) `notElem` stopWords) $ words input 
-            in unwords $ map (stem English) $ filtered
 
 {-
 ========================================================================
