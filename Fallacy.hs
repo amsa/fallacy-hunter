@@ -1,5 +1,6 @@
 import Control.Monad  
 import qualified Data.Map as M
+import qualified Data.List.Split as Split
 import Data.Logic.Propositional
 import qualified Data.Text as T
 import qualified Data.Char as Char 
@@ -110,15 +111,15 @@ extractPremiseConclusionAll sentence = do
 toString :: [[(String, b)]] -> [String]
 toString sentList = foldr (\l acc -> unwords [fst x | x <- l]:acc) [] sentList
 
-removeNot :: String -> String
-removeNot sent = unwords $ foldr (\w acc -> if w == "not" then acc else w:acc) [] (words sent)
+removeWord :: String -> String -> String
+removeWord word sent = unwords $ foldr (\w acc -> if w == word then acc else w:acc) [] (words sent)
 
 replaceKeywords :: ([[(String, b)]], [[(String, b1)]]) -> ([Expr], [Expr])
 replaceKeywords (premise, conclusion) = 
         let (psent, qsent) = (toString premise, toString conclusion)
             lst = psent ++ qsent
             varMap = foldr (\s acc -> 
-                           let sent = removeNot s
+                           let sent = removeWord "not" s
                                in if M.member sent acc then acc 
                                              else M.insert sent (Char.chr(M.size acc+96)) acc
                                              ) (M.fromList [("", '_')]) lst
@@ -134,15 +135,12 @@ sentToFormula varMap sent =
         foldr (\s acc -> 
               let sw = words s 
                   hasNot = if "not" `elem` sw then True else False
-                  cleanedSent = if hasNot then removeNot s else s
+                  {-hasOr = if "or" `elem` sw then True else False-}
+                  {-hasIf = if "if" `elem` sw && "then" `elem` sw then True else False-}
+                  cleanedSent = if hasNot then removeWord "not" s else s
                   varName = getVarName $ M.lookup cleanedSent varMap
                   sentVar = if hasNot then neg $ var varName else var varName
                   in sentVar:acc) [] sent
-
-{-reduceAnd :: [Expr] -> Expr-}
-{-reduceAnd [] = error "Empty expression list is given"-}
-{-reduceAnd expr = foldr (\e acc -> conj e acc) (head expr) (tail expr)-}
-
 
 reduceAnd :: [Expr] -> Expr
 reduceAnd [] = error "Empty expression list is given"
