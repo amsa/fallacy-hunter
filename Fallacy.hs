@@ -42,7 +42,7 @@ iff = Biconditional
 main = forever $ do  
                putStr "> "  
                l <- getLine
-               res <- parseSent l
+               res <- isFallaciousSentence l
                putStrLn $ "Is fallacy? " ++ show(res)
 {- tagString
 - parses the input string, and handles POS tagging
@@ -111,37 +111,9 @@ toString sentList = foldr (\l acc -> unwords [fst x | x <- l]:acc) [] sentList
 removeWord :: String -> String -> String
 removeWord word sent = unwords $ foldr (\w acc -> if w == word then acc else w:acc) [] (words sent)
 
-replaceKeywords :: ([[(String, b)]], [[(String, b1)]]) -> ([Expr], [Expr])
-replaceKeywords (premise, conclusion) = 
-        let (psent, qsent) = (toString premise, toString conclusion)
-            lst = psent ++ qsent
-            varMap = foldr (\s acc -> 
-                           let sent = removeWord "not" s
-                               in if M.member sent acc then acc 
-                                             else M.insert sent (Char.chr(M.size acc+96)) acc
-                                             ) (M.fromList [("", '_')]) lst
-            finalMap = M.delete "" varMap
-            in (sentToExpr finalMap psent, sentToExpr finalMap qsent)
-
 getVarName :: Maybe Char -> Char
 getVarName (Just x) = x
 getVarName _ = '_'
-
-sentToExpr :: M.Map String Char -> [String] -> [Expr]
-sentToExpr varMap sent = 
-        foldr (\s acc -> 
-              let sw = words s 
-                  hasNot = if "not" `elem` sw then True else False
-                  cleanedSent = if hasNot then removeWord "not" s else s
-                  varName = getVarName $ M.lookup cleanedSent varMap
-                  sentVar = if hasNot then neg $ var varName else var varName
-                  in sentVar:acc) [] sent
-
-reduceAnd :: [Expr] -> Expr
-reduceAnd [] = error "Empty expression list is given"
-reduceAnd [x] = x
-reduceAnd (s:sx) = conj s (reduceAnd sx)
-
 
 reduceDisj :: [Formula] -> Formula
 reduceDisj [] = error "Empty expression list is given"
@@ -178,6 +150,7 @@ extractDisj (Sentence s) =
         then map (Sentence) (Split.splitOn " or " s)
         else [Sentence s]
 
+extractNot :: Formula -> Formula
 extractNot t@(Sentence s) = if "not" `elem` (words s) then (Neg $ Sentence (removeWord "not" s)) else t
 extractNot (Cond l r) = Cond (extractNot l) (extractNot r)
 extractNot (Conj l r) = Conj (extractNot l) (extractNot r)
@@ -206,6 +179,15 @@ makeVarMap (premise, conclusion) =
             in M.delete "" varMap
 
 
+reduce :: M.Map String Char -> Formula -> Expr
+reduce varMap (Sentence s) = var $ getVarName $ M.lookup s varMap
+reduce varMap (Neg f) = neg $ reduce varMap f
+reduce varMap (Conj l r) = conj (reduce varMap l) (reduce varMap r)
+reduce varMap (Disj l r) = disj (reduce varMap l) (reduce varMap r)
+reduce varMap (Cond l r) = cond (reduce varMap l) (reduce varMap r)
+reduce _ _ = var '_'
+
+parseKeywords :: ([[(String, b)]], [[(String, b1)]]) -> (Expr, Expr)
 parseKeywords (premise, conclusion) = 
         let (psents, qsents) = (toString premise, toString conclusion)
             (psentList, qsentList) = (toSentList psents, toSentList qsents)
@@ -213,18 +195,21 @@ parseKeywords (premise, conclusion) =
             (pDisjExtracted, qDisjExtracted) = (map (extractDisj) pIfExtracted, map (extractDisj) qIfExtracted)
             (pDisjReduced, qDisjReduced) = (reduceAllDisj pDisjExtracted, reduceAllDisj qDisjExtracted)
             (pNotRemoved, qNotRemoved) = (map (extractNot) pDisjReduced, map (extractNot) qDisjReduced)
-            t = (reduceAllConj pNotRemoved, reduceAllConj qNotRemoved)
-            {-varMap = makeVarMap t-}
-            in t
+            t@(p, q) = (reduceAllConj pNotRemoved, reduceAllConj qNotRemoved)
+            varMap = makeVarMap t
+            in (reduce varMap p, reduce varMap q)
 
-
-parseSent :: String -> IO String
-parseSent sentence = do
+toLogicalForm sentence = do
         t <- extractPremiseConclusionAll sentence
-        let (p, q) = replaceKeywords t
-            result = if length p < 2 && length q < 2 
-                         then "Not enough propositions given." 
-                         else show $ isFallacy $ Conditional (reduceAnd p) (reduceAnd q)
+        let (p, q) = parseKeywords t
+            in return (Conditional p q)
+
+
+isFallaciousSentence :: String -> IO Bool
+isFallaciousSentence sentence = do
+        t <- extractPremiseConclusionAll sentence
+        let (p, q) = parseKeywords t
+            result = isFallacy $ Conditional p q
             in return (result)
 
 
