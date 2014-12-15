@@ -31,6 +31,51 @@ assertEqualTest expected actual =
 	TestCase $ assertEqual "" expected actual
 
 
+
+{-
+========================================================================
+containsFallacyTest
+========================================================================
+
+Creates a test which expects the given input expression to contain the 
+given fallacy with the given fallacy pattern (expressing the variable 
+mapping)
+
+parameters:
+	
+	Expr:	the expression to be given as input to findFallacies
+	
+	FoundFallacy: the expected FoundFallacy to be contained in the 
+		findFallacies output
+	
+returns:
+
+	Test:	a test which succeeds if isFallacy output contains the expected
+		FoundFallacy
+-}
+containsFallacyTest :: Expr -> FoundFallacy -> Test
+containsFallacyTest inputExpr expFoundFallacy = 
+	assertEqualTest True $ elem expFoundFallacy $ findFallacies inputExpr
+
+
+{-
+========================================================================
+parse
+========================================================================
+
+Shortcut for parsing expressions.
+
+parameters:
+	String:	input, parsable by Data.Logic.Propositional.parseExpr
+		
+returns:
+	Expr:	the parsed expression from the input
+-}
+parse :: String -> Expr
+parse input = case parseExpr "" input of
+	Left ex -> error $ "cannot parse: " ++ input
+	Right val -> val
+
 {-
 ========================================================================
 affirmDisjunct_posTest
@@ -43,16 +88,20 @@ there is asertBool which has the functionality of 'assertTrue'
 but since it is called so confusingly, I preferred the unambiguous
 assertEquel True ...
 -}
-affirmDisjunct_posTest = assertEqualTest True (isFallacy expr)
+affirmDisjunct_posTest = containsFallacyTest expr expFoundFallacy
 	where
-		complexA = a `conj` c `conj` d 				-- reducable to a
-		complexA2 = a `conj` (c `cond` a) 			-- reducable to a
-		complexB = b `conj` d 						-- reducable to b
-		complexNegB = c `conj` (c `cond` (neg b)) 	-- reducable to (NOT b)
+		complexA = parse "(a & c) & d"			-- reducable to a
+		complexA2 = parse "a & (c -> a)" 		-- reducable to a
+		complexB = parse "b & d"				-- reducable to b
+		complexNegB = parse "c & (c -> ~b)" 	-- reducable to (NOT b)
 		
 		expr_left = (complexA `disj` complexB) `conj` complexA2
 		expr_right = complexNegB
 		expr = expr_left `cond` expr_right
+
+		expFalExpr = parse "((a | b) & a) -> ~b"
+
+		expFoundFallacy = FoundFallacy AffirmDisjunct expFalExpr expr
 
 
 {-

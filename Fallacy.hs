@@ -9,19 +9,19 @@ disj = Disjunction
 cond = Conditional
 iff = Biconditional
 
-data Fallacy = AffirmDisjunct | DenyAntecedent | AffirmConsequent
-	deriving (Show)
+data FallacyType = AffirmDisjunct | DenyAntecedent | AffirmConsequent
+	deriving (Show, Eq)
 
-fallacyName :: Fallacy -> String
+fallacyName :: FallacyType -> String
 fallacyName AffirmDisjunct = "Affirming a Disjunct"
 fallacyName DenyAntecedent = "Denying the antecedent"
 fallacyName AffirmConsequent = "Affirming the Consequent"
 
 data FoundFallacy = FoundFallacy {
-	fallacy :: Fallacy,
+	fallacyType :: FallacyType,
 	fallacyExpr :: Expr,
 	origExpr :: Expr
-	} deriving (Show)
+	} deriving (Show, Eq)
 
 {-
 ========================================================================
@@ -36,12 +36,12 @@ parameters:
 	Var: variable to be mapped as b in the formula above
 
 returns:
-	Fallacy: the fallacy type
+	FallacyType: the fallacy type
 	Expr: the expression as defined above with `a` and `b` being replaced 
 		by the two variables given as parameters	
 -}
 
-affirmDisjunct :: Var -> Var -> (Fallacy, Expr)
+affirmDisjunct :: Var -> Var -> (FallacyType, Expr)
 affirmDisjunct a b = (AffirmDisjunct, left `cond` right)
 	where
 		aExp = Variable a
@@ -63,12 +63,12 @@ parameters:
 	Var: variable to be mapped as b in the formula above
 
 returns:
-	Fallacy: the fallacy type
+	FallacyType: the fallacy type
 	Expr: the expression as defined above with `a` and `b` being replaced 
 		by the two variables given as parameters	
 -}
 
-denyAntecedent :: Var -> Var -> (Fallacy, Expr)
+denyAntecedent :: Var -> Var -> (FallacyType, Expr)
 denyAntecedent a b = (DenyAntecedent, left `cond` right)
 	where
 		aExp = Variable a
@@ -90,12 +90,12 @@ parameters:
 	Var: variable to be mapped as b in the formula above
 
 returns:
-	Fallacy: the fallacy type
+	FallacyType: the fallacy type
 	Expr: the expression as defined above with `a` and `b` being replaced 
 		by the two variables given as parameters	
 -}
 
-affirmConsequent :: Var -> Var -> (Fallacy, Expr)
+affirmConsequent :: Var -> Var -> (FallacyType, Expr)
 affirmConsequent a b = (AffirmConsequent, left `cond` right)
 	where
 		aExp = Variable a
@@ -116,9 +116,10 @@ parameters:
 	Expr: the expression to be checked for contained fallacies
 
 returns
-	[Fallacy]: a list of all found fallacies, each with its name, the 
-		original expression from the input which contains the fallacy, and 
-		the pure fallacy pattern with matching variables
+	[FoundFallacy]: a list of all found fallacies, each with its type, the pure 
+	fallacy pattern with matching variables, and the original expression from 
+	the input which contains the fallacy 
+		
 -}
 
 
@@ -131,7 +132,7 @@ findFallacies input@(Conditional left right) =
 		fallacies = [func a b | 
 			func <- fallacyFunctions, a <- variables left, b <- variables left]
 
-		inputImpliesFallacy :: (Fallacy, Expr) -> Bool
+		inputImpliesFallacy :: (FallacyType, Expr) -> Bool
 		inputImpliesFallacy (_, (Conditional fal_left fal_right)) =
 			isTautology $ (left `cond` fal_left) `conj` (right `cond` fal_right)
 
