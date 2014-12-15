@@ -24,9 +24,9 @@ data FoundFallacy = FoundFallacy {
 	} deriving (Show, Eq)
 
 {-
-========================================================================
+================================================================================
 affirmDisjunct
-========================================================================
+================================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
 (a OR b) AND a => NOT b
@@ -51,9 +51,9 @@ affirmDisjunct a b = (AffirmDisjunct, left `cond` right)
 
 
 {-
-========================================================================
+================================================================================
 denyAntecedent
-========================================================================
+================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
 (a => b) AND (NOT a) => NOT b
@@ -78,9 +78,9 @@ denyAntecedent a b = (DenyAntecedent, left `cond` right)
 
 
 {-
-========================================================================
+================================================================================
 affirmConsequent
-========================================================================
+================================================================================
 
 The pattern for 'Affirming the Consequent' fallacy is
 (a => b) AND b => a
@@ -105,9 +105,9 @@ affirmConsequent a b = (AffirmConsequent, left `cond` right)
 
 
 {-
-========================================================================
+================================================================================
 findFallacies
-========================================================================
+================================================================================
 
 Lists all fallacies (which we implemented so far and) which are contained
 in the input expression.
@@ -139,7 +139,3 @@ findFallacies input@(Conditional left right) =
 		foundFallacies = filter inputImpliesFallacy fallacies
 
 findFallacies _ = []
-
-
-isFallacy :: Expr -> Bool
-isFallacy expr = length (findFallacies expr) > 0

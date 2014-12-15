@@ -12,9 +12,9 @@ c = var 'c'
 d = var 'd'
 
 {-
-========================================================================
+================================================================================
 assertEqualTest
-========================================================================
+================================================================================
 
 a shortcut for creating TestCase elements of the form
 testName = TestCase $ assertEqual "" True (someExpression)
@@ -33,35 +33,37 @@ assertEqualTest expected actual =
 
 
 {-
-========================================================================
-containsFallacyTest
-========================================================================
+================================================================================
+hasFallacyTest
+================================================================================
 
-Creates a test which expects the given input expression to contain the 
+Creates a test which checks if the given input expression contains the 
 given fallacy with the given fallacy pattern (expressing the variable 
-mapping)
+mapping).
 
 parameters:
 	
 	Expr:	the expression to be given as input to findFallacies
 	
-	FoundFallacy: the expected FoundFallacy to be contained in the 
-		findFallacies output
+	FoundFallacy: the FoundFallacy to look for in the findFallacies output
+
+	Bool:	True if the fallacy is expected to be contained in the findFallacies
+		output, False otherwise
 	
 returns:
 
-	Test:	a test which succeeds if isFallacy output contains the expected
+	Test:	a test which checks if findFallacies output contains the expected
 		FoundFallacy
 -}
-containsFallacyTest :: Expr -> FoundFallacy -> Test
-containsFallacyTest inputExpr expFoundFallacy = 
-	assertEqualTest True $ elem expFoundFallacy $ findFallacies inputExpr
+hasFallacyTest :: Expr -> FoundFallacy -> Bool -> Test
+hasFallacyTest inputExpr foundFallacy shouldContain = 
+	assertEqualTest shouldContain $ elem foundFallacy $ findFallacies inputExpr
 
 
 {-
-========================================================================
+================================================================================
 parse
-========================================================================
+================================================================================
 
 Shortcut for parsing expressions.
 
@@ -77,9 +79,9 @@ parse input = case parseExpr "" input of
 	Right val -> val
 
 {-
-========================================================================
+================================================================================
 affirmDisjunct_posTest
-========================================================================
+================================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
 (a OR b) AND a => NOT b
@@ -88,7 +90,7 @@ there is asertBool which has the functionality of 'assertTrue'
 but since it is called so confusingly, I preferred the unambiguous
 assertEquel True ...
 -}
-affirmDisjunct_posTest = containsFallacyTest expr expFoundFallacy
+affirmDisjunct_posTest = hasFallacyTest expr expFoundFallacy True
 	where
 		complexA = parse "(a & c) & d"			-- reducable to a
 		complexA2 = parse "a & (c -> a)" 		-- reducable to a
@@ -100,16 +102,15 @@ affirmDisjunct_posTest = containsFallacyTest expr expFoundFallacy
 		expr = expr_left `cond` expr_right
 
 		expFalExpr = parse "((a | b) & a) -> ~b"
-
 		expFoundFallacy = FoundFallacy AffirmDisjunct expFalExpr expr
 
 
 {-
-========================================================================
+================================================================================
 affirmDisjunct_negTest
-========================================================================
+================================================================================
 -}
-affirmDisjunct_negTest = assertEqualTest False (isFallacy expr)
+affirmDisjunct_negTest = hasFallacyTest expr unwantedFallacy False
 	where
 		complexA = parse "(a & c) & d" 				-- reducable to a
 		complexA2 = parse "a & (c -> a)" 			-- reducable to a
@@ -120,19 +121,21 @@ affirmDisjunct_negTest = assertEqualTest False (isFallacy expr)
 		expr_right = neg complexSomething
 		expr = expr_left `cond` expr_right
 
+		unwantedFalExpr = parse "((a | b) & a) -> ~b"
+		unwantedFallacy = FoundFallacy AffirmDisjunct unwantedFalExpr expr
 
 
 {-
-========================================================================
-affirmDisjunct_changedVars_posTest
-========================================================================
+================================================================================
+affirmDisjunct_changedVars_test
+================================================================================
 The pattern for 'Affirming a Disjunct' fallacy is
 (a OR b) AND a => NOT b
 
 This tests if the fallacy detection also works with
 (c OR d) AND c => NOT d
 -}
-affirmDisjunct_changedVars_posTest = assertEqualTest True (isFallacy expr)
+affirmDisjunct_changedVars_test = hasFallacyTest expr expFoundFallacy True
 	where
 		complexC = parse "(c & c) & a"		-- reducable to c
 		complexC2 = parse "c & (c | a)" 	-- reducable to c
@@ -143,28 +146,32 @@ affirmDisjunct_changedVars_posTest = assertEqualTest True (isFallacy expr)
 		expr_right = complexNegD
 		expr = expr_left `cond` expr_right
 
+		expFalExpr = parse "((c | d) & c) -> ~d"
+		expFoundFallacy = FoundFallacy AffirmDisjunct expFalExpr expr
+
+
 
 {-
-========================================================================
-wrongFormat_Test
-========================================================================
+================================================================================
+wrongFormat_test
+================================================================================
 A fallacy pattern always has the form (expr1 => expr2).
 This tests if the function can handle expressions of a different format
 (which are therefore no fallacies) withour raising errors.
 -}
-wrongFormat_Test = assertEqualTest False $ isFallacy $ parse "a & ~a"
+wrongFormat_test = assertEqualTest True $ null $ findFallacies $ parse "a & ~a"
 
 
 {-
-========================================================================
+================================================================================
 denyAntecedent_posTest
-========================================================================
+================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
 (a => b) AND (NOT a) => NOT b
 -}
 
-denyAntecedent_posTest = assertEqualTest True (isFallacy expr)
+denyAntecedent_posTest = hasFallacyTest expr expFoundFallacy True
 	where
 		complexA = parse "(a & a) & a" 	-- reducable to a
 		complexNegA = parse "~(c | a)" 	-- reducable to (NOT a)
@@ -175,18 +182,22 @@ denyAntecedent_posTest = assertEqualTest True (isFallacy expr)
 		expr_right = complexNegB
 		expr = expr_left `cond` expr_right
 
+		expFalExpr = parse "((a -> b) & ~a) -> ~b"
+		expFoundFallacy = FoundFallacy DenyAntecedent expFalExpr expr
+
+
 
 
 {-
-========================================================================
+================================================================================
 affirmConseq_posTest
-========================================================================
+================================================================================
 
 The pattern for 'Affirming the consequent' fallacy is
 (a => b) AND b => a
 -}
 
-affirmConseq_posTest = assertEqualTest True (isFallacy expr)
+affirmConseq_posTest = hasFallacyTest expr expFoundFallacy True
 	where
 		complexA = parse "~ ~a" 		 -- reducable to a
 		complexA2 = parse "~(c | ~a)" 	 -- reducable to a
@@ -197,11 +208,14 @@ affirmConseq_posTest = assertEqualTest True (isFallacy expr)
 		expr_right = complexA2 `conj` complexB
 		expr = expr_left `cond` expr_right
 
+		expFalExpr = parse "((a -> b) & b) -> a"
+		expFoundFallacy = FoundFallacy AffirmConsequent expFalExpr expr
+
 
 {-
-========================================================================
+================================================================================
 affirmConseq_posTest2
-========================================================================
+================================================================================
 
 The pattern for 'Affirming the consequent' fallacy is
 (a => b) AND b => a
@@ -212,36 +226,36 @@ this tests "pure" 'Affirming the consequent' fallacy (which is not 'Denying
 the antecedent' fallacy)
 -}
 
-affirmConseq_posTest2 = assertEqualTest True (isFallacy expr)
+affirmConseq_posTest2 = hasFallacyTest expr expFoundFallacy True
 	where
 		expr = parse "((a -> b) & b) -> a"
-
+		expFoundFallacy = FoundFallacy AffirmConsequent expr expr
 
 {-
-========================================================================
+================================================================================
 noFallacyTest1
-========================================================================
+================================================================================
 
 In one of our experiments the following expression was wrongly classified 
 as fallacy:
 (NOT a) AND b => not a
 -}
-noFallacyTest1 = assertEqualTest False (isFallacy expr)
+noFallacyTest1 = assertEqualTest True $ null $ findFallacies expr
 	where
 		expr = parse "(~a & b) -> ~a"
 
 
 
 {-
-========================================================================
+================================================================================
 collection of all tests
-========================================================================
+================================================================================
 -}
 tests = TestList [
 	TestLabel "affirmDisjunct_posTest" affirmDisjunct_posTest,
 	TestLabel "affirmDisjunct_negTest" affirmDisjunct_negTest,
-	TestLabel "affirmDisjunct_changedVars_posTest" affirmDisjunct_changedVars_posTest,
-	TestLabel "wrongFormat_Test" wrongFormat_Test,
+	TestLabel "affirmDisjunct_changedVars_test" affirmDisjunct_changedVars_test,
+	TestLabel "wrongFormat_test" wrongFormat_test,
 	TestLabel "denyAntecedent_posTest" denyAntecedent_posTest,
 	TestLabel "affirmConseq_posTest" affirmConseq_posTest,
 	TestLabel "affirmConseq_posTest2" affirmConseq_posTest2,
