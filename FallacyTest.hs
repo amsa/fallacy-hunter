@@ -172,6 +172,15 @@ affirmConseq_posTest2 = assertEqualTest True (isFallacy expr)
 		expr = expr_left `cond` expr_right
 
 
+{-
+========================================================================
+noFallacyTest1
+========================================================================
+
+In one of our experiments the following expression was wrongly classified 
+as fallacy:
+(NOT a) AND b => not a
+-}
 noFallacyTest1 = assertEqualTest False (isFallacy expr)
 	where
 		expr_left = (neg a) `conj` b 
