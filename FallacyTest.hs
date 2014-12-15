@@ -111,10 +111,10 @@ affirmDisjunct_negTest
 -}
 affirmDisjunct_negTest = assertEqualTest False (isFallacy expr)
 	where
-		complexA = a `conj` c `conj` d 				-- reducable to a
-		complexA2 = a `conj` (c `cond` a) 			-- reducable to a
-		complexB = b `conj` d 						-- reducable to b
-		complexSomething = d `conj` (c `cond` b) 	-- NOT reducable to b
+		complexA = parse "(a & c) & d" 				-- reducable to a
+		complexA2 = parse "a & (c -> a)" 			-- reducable to a
+		complexB = parse "b & d" 					-- reducable to b
+		complexSomething = parse "d & (c -> b)" 	-- NOT reducable to b
 
 		expr_left = (complexA `disj` complexB) `conj` complexA2
 		expr_right = neg complexSomething
@@ -134,10 +134,10 @@ This tests if the fallacy detection also works with
 -}
 affirmDisjunct_changedVars_posTest = assertEqualTest True (isFallacy expr)
 	where
-		complexC = c `conj` c `conj` a 				-- reducable to c
-		complexC2 = c `conj` (c `disj` a) 			-- reducable to c
-		complexD = a `conj` (a `cond` d)			-- reducable to d
-		complexNegD = (neg d) `conj` (a `disj` b) 	-- reducable to (NOT d)
+		complexC = parse "(c & c) & a"		-- reducable to c
+		complexC2 = parse "c & (c | a)" 	-- reducable to c
+		complexD = parse "a & (a -> d)"		-- reducable to d
+		complexNegD = parse "~d & (a | b)" 	-- reducable to (NOT d)
 		
 		expr_left = (complexC `disj` complexD) `conj` complexC2
 		expr_right = complexNegD
@@ -152,9 +152,7 @@ A fallacy pattern always has the form (expr1 => expr2).
 This tests if the function can handle expressions of a different format
 (which are therefore no fallacies) withour raising errors.
 -}
-wrongFormat_Test = assertEqualTest False (isFallacy expr)
-	where
-		expr = (a `conj` (neg a))
+wrongFormat_Test = assertEqualTest False $ isFallacy $ parse "a & ~a"
 
 
 {-
@@ -168,10 +166,10 @@ The pattern for 'Denying the antecedent' fallacy is
 
 denyAntecedent_posTest = assertEqualTest True (isFallacy expr)
 	where
-		complexA = a `conj` a `conj` a 		-- reducable to a
-		complexNegA = neg (c `disj` a) 		-- reducable to (NOT a)
-		complexB = neg ((neg b) `disj` d) 	-- reducable to b
-		complexNegB = neg $ neg $ neg b 	-- reducable to (NOT b)
+		complexA = parse "(a & a) & a" 	-- reducable to a
+		complexNegA = parse "~(c | a)" 	-- reducable to (NOT a)
+		complexB = parse "~(~b | d)"	-- reducable to b
+		complexNegB = parse "~ ~ ~b"	-- reducable to (NOT b)
 
 		expr_left = (complexA `cond` complexB) `conj` complexNegA
 		expr_right = complexNegB
@@ -190,10 +188,10 @@ The pattern for 'Affirming the consequent' fallacy is
 
 affirmConseq_posTest = assertEqualTest True (isFallacy expr)
 	where
-		complexA = neg $ neg $ a 					-- reducable to a
-		complexA2 = neg (c `disj` (neg a)) 			-- reducable to a
-		complexB = neg ((neg b) `disj` d) 			-- reducable to b
-		complexB2 = (b `disj` c) `conj` (neg c) 	-- reducable to b
+		complexA = parse "~ ~a" 		 -- reducable to a
+		complexA2 = parse "~(c | ~a)" 	 -- reducable to a
+		complexB = parse "~(~b | d)" 	 -- reducable to b
+		complexB2 = parse "(b | c) & ~c" -- reducable to b
 
 		expr_left = (complexA `cond` complexB) `conj` complexB2
 		expr_right = complexA2 `conj` complexB
@@ -216,9 +214,7 @@ the antecedent' fallacy)
 
 affirmConseq_posTest2 = assertEqualTest True (isFallacy expr)
 	where
-		expr_left = (a `cond` b) `conj` b
-		expr_right = a
-		expr = expr_left `cond` expr_right
+		expr = parse "((a -> b) & b) -> a"
 
 
 {-
@@ -232,9 +228,7 @@ as fallacy:
 -}
 noFallacyTest1 = assertEqualTest False (isFallacy expr)
 	where
-		expr_left = (neg a) `conj` b 
-		expr_right = neg a 
-		expr = expr_left `cond` expr_right
+		expr = parse "(~a & b) -> ~a"
 
 
 
