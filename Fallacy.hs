@@ -29,7 +29,7 @@ affirmDisjunct
 ================================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
-(a OR b) AND a => NOT b
+(a | b) & a -> ~b
 
 parameters:	
 	Var: variable to be mapped as a in the formula above
@@ -56,7 +56,7 @@ denyAntecedent
 ================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
-(a => b) AND (NOT a) => NOT b
+(a -> b) & ~a -> ~b
 
 parameters:	
 	Var: variable to be mapped as a in the formula above
@@ -83,7 +83,7 @@ affirmConsequent
 ================================================================================
 
 The pattern for 'Affirming the Consequent' fallacy is
-(a => b) AND b => a
+(a -> b) & b -> a
 
 parameters:	
 	Var: variable to be mapped as a in the formula above

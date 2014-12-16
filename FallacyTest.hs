@@ -34,31 +34,56 @@ assertEqualTest expected actual =
 
 {-
 ================================================================================
-hasFallacyTest
+hasFallaciesTest
 ================================================================================
 
-Creates a test which checks if the given input expression contains the 
-given fallacy with the given fallacy pattern (expressing the variable 
-mapping).
+Creates a test which succeeds iff the given input expression contains each 
+given FoundFallacy.
 
 parameters:
 	
 	Expr:	the expression to be given as input to findFallacies
 	
-	FoundFallacy: the FoundFallacy to look for in the findFallacies output
-
-	Bool:	True if the fallacy is expected to be contained in the findFallacies
-		output, False otherwise
+	[FoundFallacy]: the FoundFallacy instances to look for in the findFallacies 
+		output
 	
 returns:
 
-	Test:	a test which checks if findFallacies output contains the expected
-		FoundFallacy
+	Test:	the test as described above
 -}
-hasFallacyTest :: Expr -> FoundFallacy -> Bool -> Test
-hasFallacyTest inputExpr foundFallacy shouldContain = 
-	assertEqualTest shouldContain $ elem foundFallacy $ findFallacies inputExpr
+hasFallaciesTest :: Expr -> [FoundFallacy] -> Test
+hasFallaciesTest inputExpr expFallacies = assertEqualTest True $ actual
+	where
+		foundFallacies = findFallacies inputExpr
 
+		isFound :: FoundFallacy -> Bool
+		isFound expFallacy = expFallacy `elem` foundFallacies
+
+		actual = all isFound expFallacies
+
+
+{-
+================================================================================
+hasNotFallacyTest
+================================================================================
+
+Creates a test which succeeds iff the given input expression does not contain 
+the given FoundFallacy.
+
+parameters:
+	
+	Expr:	the expression to be given as input to findFallacies
+	
+	FoundFallacy: the fallacy which should not be contained in the findFallacies
+		output
+	
+returns:
+
+	Test:	the test as described above
+-}
+hasNotFallacyTest :: Expr -> FoundFallacy -> Test
+hasNotFallacyTest inputExpr unwantedFallacy = 
+	assertEqualTest False $ elem unwantedFallacy $ findFallacies inputExpr
 
 {-
 ================================================================================
@@ -90,7 +115,7 @@ there is asertBool which has the functionality of 'assertTrue'
 but since it is called so confusingly, I preferred the unambiguous
 assertEquel True ...
 -}
-affirmDisjunctPosTest = hasFallacyTest expr expFoundFallacy True
+affirmDisjunctPosTest = hasFallaciesTest expr [expFallacy]
 	where
 		complexA = parse "(a & c) & d"			-- reducable to a
 		complexA2 = parse "a & (c -> a)" 		-- reducable to a
@@ -102,7 +127,7 @@ affirmDisjunctPosTest = hasFallacyTest expr expFoundFallacy True
 		expr = exprLeft `cond` exprRight
 
 		expFalExpr = parse "((a | b) & a) -> ~b"
-		expFoundFallacy = FoundFallacy AffirmDisjunct expFalExpr expr
+		expFallacy = FoundFallacy AffirmDisjunct expFalExpr expr
 
 
 {-
@@ -110,7 +135,7 @@ affirmDisjunctPosTest = hasFallacyTest expr expFoundFallacy True
 affirmDisjunctNegTest
 ================================================================================
 -}
-affirmDisjunctNegTest = hasFallacyTest expr unwantedFallacy False
+affirmDisjunctNegTest = hasNotFallacyTest expr unwantedFallacy
 	where
 		complexA = parse "(a & c) & d" 				-- reducable to a
 		complexA2 = parse "a & (c -> a)" 			-- reducable to a
@@ -135,7 +160,7 @@ The pattern for 'Affirming a Disjunct' fallacy is
 This tests if the fallacy detection also works with
 (c | d) & c -> ~d
 -}
-affirmDisjunctChangedVarsTest = hasFallacyTest expr expFoundFallacy True
+affirmDisjunctChangedVarsTest = hasFallaciesTest expr [expFallacy]
 	where
 		complexC = parse "(c & c) & a"		-- reducable to c
 		complexC2 = parse "c & (c | a)" 	-- reducable to c
@@ -147,7 +172,7 @@ affirmDisjunctChangedVarsTest = hasFallacyTest expr expFoundFallacy True
 		expr = exprLeft `cond` exprRight
 
 		expFalExpr = parse "((c | d) & c) -> ~d"
-		expFoundFallacy = FoundFallacy AffirmDisjunct expFalExpr expr
+		expFallacy = FoundFallacy AffirmDisjunct expFalExpr expr
 
 
 
@@ -171,7 +196,7 @@ The pattern for 'Denying the antecedent' fallacy is
 (a -> b) & ~a -> ~b
 -}
 
-denyAntecedentPosTest = hasFallacyTest expr expFoundFallacy True
+denyAntecedentPosTest = hasFallaciesTest expr [expFallacy]
 	where
 		complexA = parse "(a & a) & a" 	-- reducable to a
 		complexNegA = parse "~(c | a)" 	-- reducable to ~a
@@ -183,7 +208,7 @@ denyAntecedentPosTest = hasFallacyTest expr expFoundFallacy True
 		expr = exprLeft `cond` exprRight
 
 		expFalExpr = parse "((a -> b) & ~a) -> ~b"
-		expFoundFallacy = FoundFallacy DenyAntecedent expFalExpr expr
+		expFallacy = FoundFallacy DenyAntecedent expFalExpr expr
 
 
 
@@ -197,7 +222,7 @@ The pattern for 'Affirming the consequent' fallacy is
 (a -> b) & b -> a
 -}
 
-affirmConseqPosTest = hasFallacyTest expr expFoundFallacy True
+affirmConseqPosTest = hasFallaciesTest expr [expFallacy]
 	where
 		complexA = parse "~ ~a" 		 -- reducable to a
 		complexA2 = parse "~(c | ~a)" 	 -- reducable to a
@@ -209,7 +234,7 @@ affirmConseqPosTest = hasFallacyTest expr expFoundFallacy True
 		expr = exprLeft `cond` exprRight
 
 		expFalExpr = parse "((a -> b) & b) -> a"
-		expFoundFallacy = FoundFallacy AffirmConsequent expFalExpr expr
+		expFallacy = FoundFallacy AffirmConsequent expFalExpr expr
 
 
 {-
@@ -226,10 +251,10 @@ this tests "pure" 'Affirming the consequent' fallacy (which is not 'Denying
 the antecedent' fallacy)
 -}
 
-affirmConseqPosTest2 = hasFallacyTest expr expFoundFallacy True
+affirmConseqPosTest2 = hasFallaciesTest expr [expFallacy]
 	where
 		expr = parse "((a -> b) & b) -> a"
-		expFoundFallacy = FoundFallacy AffirmConsequent expr expr
+		expFallacy = FoundFallacy AffirmConsequent expr expr
 
 {-
 ================================================================================
@@ -246,7 +271,96 @@ as fallacy:
 
 
 
+{-
+================================================================================
+affirmDisjunctRecursAndTest
+================================================================================
 
+The pattern for 'Affirming a Disjunct' fallacy is
+(a | b) & a -> ~b
+
+This tests if it can be found recusrively if the whole input expression is of
+type (expression1 & expression2) with (expression2 == ((d | c) & d -> ~c)). 
+-}
+
+affirmDisjunctRecursAndTest = hasFallaciesTest input [expFallacy]
+	where
+		-- random expression not containining any fallacies
+		andExpr1 = parse "(~a & b) & c"
+
+		-- the 'Affirming a Disjunct' pattern with 'a, b' replaced by 'd, c':
+		andExpr2 = parse "(d | c) & d -> ~c"
+
+		input = andExpr1 `conj` andExpr2
+
+		expFallacy = FoundFallacy AffirmDisjunct andExpr2 andExpr2
+
+
+
+{-
+================================================================================
+denyAntecedentRecursOrTest
+================================================================================
+
+The pattern for 'Denying the antecedent' fallacy is
+(a -> b) & ~a -> ~b
+
+The pattern for 'Affirming the Consequent' fallacy is
+(a -> b) & b -> a
+
+This tests if both can be found recusrively if the whole input expression is of
+type (expression1 | expression2) with expression1 containging 'Denying the 
+antecedent' and expression 2 containing 'Affirming the Consequent'. 
+-}
+
+denyAntecedentRecursOrTest = hasFallaciesTest input expFallacies
+	where
+		-- the 'Denying the antecedent' pattern with 'b' replaced by 'c':
+		orExpr1 = parse "((a -> c) & ~a) -> ~c)"
+
+		-- the 'Affirming the Consequent' pattern with 'a, b' inverted:
+		orExpr2 = parse "((b -> a) & a) -> b"
+
+		input = orExpr1 `disj` orExpr2
+
+		expFallacies = [
+			FoundFallacy DenyAntecedent orExpr1 orExpr1,
+			FoundFallacy AffirmConsequent orExpr2 orExpr2
+			]
+
+
+{-
+================================================================================
+denyAntecedentRecursOrTest
+================================================================================
+
+The pattern for 'Denying the antecedent' fallacy is
+(a -> b) & ~a -> ~b
+
+This tests if it can be found three levels deep in the recursive input 
+expression structure. The latter has the form (expr1 & ~expr2), with 
+(expr2 == expr3 -> expr4). expr3 contains the 'Denying the antecedent' fallacy 
+pattern.   
+-}
+
+denyAntecedent3LevelRecursTest = hasFallaciesTest input [expFallacy]
+	where
+		-- the Denying the antecedent' fallacy pattern
+		expr3 = parse "((a -> b) & ~a) -> ~b"
+
+		-- random expression without any fallacies
+		expr4 = parse "~(a | ~a) & b"
+
+		-- building up the tree ...
+		expr2 = expr3 `cond` expr4
+
+		-- another random expression without any fallacies
+		expr1 = parse "c <-> d"
+
+		-- building up the tree ...
+		input = expr1 `conj` (neg expr2)
+
+		expFallacy = FoundFallacy DenyAntecedent expr3 expr3
 
 
 {-
@@ -262,5 +376,8 @@ tests = TestList [
 	TestLabel "denyAntecedentPosTest" denyAntecedentPosTest,
 	TestLabel "affirmConseqPosTest" affirmConseqPosTest,
 	--TestLabel "noFallacyTest1" noFallacyTest1,
-	TestLabel "affirmConseqPosTest2" affirmConseqPosTest2
+	TestLabel "affirmConseqPosTest2" affirmConseqPosTest2,
+	TestLabel "affirmDisjunctRecursAndTest" affirmDisjunctRecursAndTest,
+	TestLabel "denyAntecedentRecursOrTest" denyAntecedentRecursOrTest,
+	TestLabel "denyAntecedent3LevelRecursTest" denyAntecedent3LevelRecursTest
 	]
