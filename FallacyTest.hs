@@ -84,7 +84,7 @@ affirmDisjunctPosTest
 ================================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
-(a OR b) AND a => NOT b
+(a | b) & a -> ~b
 
 there is asertBool which has the functionality of 'assertTrue'
 but since it is called so confusingly, I preferred the unambiguous
@@ -95,7 +95,7 @@ affirmDisjunctPosTest = hasFallacyTest expr expFoundFallacy True
 		complexA = parse "(a & c) & d"			-- reducable to a
 		complexA2 = parse "a & (c -> a)" 		-- reducable to a
 		complexB = parse "b & d"				-- reducable to b
-		complexNegB = parse "c & (c -> ~b)" 	-- reducable to (NOT b)
+		complexNegB = parse "c & (c -> ~b)" 	-- reducable to ~b
 		
 		exprLeft = (complexA `disj` complexB) `conj` complexA2
 		exprRight = complexNegB
@@ -130,17 +130,17 @@ affirmDisjunctNegTest = hasFallacyTest expr unwantedFallacy False
 affirmDisjunctChangedVarsTest
 ================================================================================
 The pattern for 'Affirming a Disjunct' fallacy is
-(a OR b) AND a => NOT b
+(a | b) & a -> ~b
 
 This tests if the fallacy detection also works with
-(c OR d) AND c => NOT d
+(c | d) & c -> ~d
 -}
 affirmDisjunctChangedVarsTest = hasFallacyTest expr expFoundFallacy True
 	where
 		complexC = parse "(c & c) & a"		-- reducable to c
 		complexC2 = parse "c & (c | a)" 	-- reducable to c
 		complexD = parse "a & (a -> d)"		-- reducable to d
-		complexNegD = parse "~d & (a | b)" 	-- reducable to (NOT d)
+		complexNegD = parse "~d & (a | b)" 	-- reducable to ~d
 		
 		exprLeft = (complexC `disj` complexD) `conj` complexC2
 		exprRight = complexNegD
@@ -155,7 +155,7 @@ affirmDisjunctChangedVarsTest = hasFallacyTest expr expFoundFallacy True
 ================================================================================
 wrongFormatTest
 ================================================================================
-A fallacy pattern always has the form (expr1 => expr2).
+A fallacy pattern always has the form (expr1 -> expr2).
 This tests if the function can handle expressions of a different format
 (which are therefore no fallacies) withour raising errors.
 -}
@@ -168,15 +168,15 @@ denyAntecedentPosTest
 ================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
-(a => b) AND (NOT a) => NOT b
+(a -> b) & ~a -> ~b
 -}
 
 denyAntecedentPosTest = hasFallacyTest expr expFoundFallacy True
 	where
 		complexA = parse "(a & a) & a" 	-- reducable to a
-		complexNegA = parse "~(c | a)" 	-- reducable to (NOT a)
+		complexNegA = parse "~(c | a)" 	-- reducable to ~a
 		complexB = parse "~(~b | d)"	-- reducable to b
-		complexNegB = parse "~ ~ ~b"	-- reducable to (NOT b)
+		complexNegB = parse "~ ~ ~b"	-- reducable to ~b
 
 		exprLeft = (complexA `cond` complexB) `conj` complexNegA
 		exprRight = complexNegB
@@ -194,7 +194,7 @@ affirmConseqPosTest
 ================================================================================
 
 The pattern for 'Affirming the consequent' fallacy is
-(a => b) AND b => a
+(a -> b) & b -> a
 -}
 
 affirmConseqPosTest = hasFallacyTest expr expFoundFallacy True
@@ -218,7 +218,7 @@ affirmConseqPosTest2
 ================================================================================
 
 The pattern for 'Affirming the consequent' fallacy is
-(a => b) AND b => a
+(a -> b) & b -> a
 
 Since some expressions, like the one in affirmConseqPosTest, contain both, 
 'Affirming the consequent' fallacy and 'Denying the antecedent' fallacy,
@@ -238,11 +238,14 @@ noFallacyTest1
 
 In one of our experiments the following expression was wrongly classified 
 as fallacy:
-(NOT a) AND b => not a
+~a & b -> ~a
 -}
 --noFallacyTest1 = assertEqualTest True $ null $ findFallacies expr
 --	where
 --		expr = parse "(~a & b) -> ~a"
+
+
+
 
 
 
