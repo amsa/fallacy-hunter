@@ -122,20 +122,41 @@ returns
 		
 -}
 
+{-
+var = Variable . Var
+neg = Negation
+conj = Conjunction
+disj = Disjunction
+cond = Conditional
+iff = Biconditional
+-}
 
 findFallacies :: Expr -> [FoundFallacy]
-findFallacies input@(Conditional left right) =
-	[FoundFallacy falType expr input | (falType, expr) <- foundFallacies]
+findFallacies (Variable _) = []
+
+findFallacies (Negation a) = findFallacies a
+
+findFallacies (Conjunction a b) = (findFallacies a) ++ (findFallacies b)
+
+findFallacies (Disjunction a b) = (findFallacies a) ++ (findFallacies b)
+
+findFallacies (Biconditional a b) = (findFallacies a) ++ (findFallacies b)
+
+findFallacies input@(Conditional inputLeft inputRight) =
+	result ++ (findFallacies inputLeft) ++ (findFallacies inputRight)
+	
 	where
 		fallacyFunctions = [affirmDisjunct, denyAntecedent, affirmConsequent]
 		
-		fallacies = [func a b | 
-			func <- fallacyFunctions, a <- variables left, b <- variables left]
+		fallacies = [func a b | func <- fallacyFunctions, 
+			a <- variables inputLeft, b <- variables inputLeft]
 
 		inputImpliesFallacy :: (FallacyType, Expr) -> Bool
 		inputImpliesFallacy (_, (Conditional falLeft falRight)) =
-			isTautology $ (left `cond` falLeft) `conj` (right `cond` falRight)
+			isTautology $ (inputLeft `cond` falLeft) `conj` 
+						  (inputRight `cond` falRight)
 
 		foundFallacies = filter inputImpliesFallacy fallacies
 
-findFallacies _ = []
+		result = [FoundFallacy falType expr input | 
+			(falType, expr) <- foundFallacies]

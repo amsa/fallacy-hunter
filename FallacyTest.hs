@@ -289,7 +289,7 @@ affirmDisjunctRecursAndTest = hasFallaciesTest input [expFallacy]
 		andExpr1 = parse "(~a & b) & c"
 
 		-- the 'Affirming a Disjunct' pattern with 'a, b' replaced by 'd, c':
-		andExpr2 = parse "(d | c) & d -> ~c"
+		andExpr2 = parse "((d | c) & d) -> ~c"
 
 		input = andExpr1 `conj` andExpr2
 
@@ -316,7 +316,7 @@ antecedent' and expression 2 containing 'Affirming the Consequent'.
 denyAntecedentRecursOrTest = hasFallaciesTest input expFallacies
 	where
 		-- the 'Denying the antecedent' pattern with 'b' replaced by 'c':
-		orExpr1 = parse "((a -> c) & ~a) -> ~c)"
+		orExpr1 = parse "((a -> c) & ~a) -> ~c"
 
 		-- the 'Affirming the Consequent' pattern with 'a, b' inverted:
 		orExpr2 = parse "((b -> a) & a) -> b"
@@ -338,7 +338,7 @@ The pattern for 'Denying the antecedent' fallacy is
 (a -> b) & ~a -> ~b
 
 This tests if it can be found three levels deep in the recursive input 
-expression structure. The latter has the form (expr1 & ~expr2), with 
+expression structure. The input has the form (expr1 <-> ~expr2), with 
 (expr2 == expr3 -> expr4). expr3 contains the 'Denying the antecedent' fallacy 
 pattern.   
 -}
@@ -358,7 +358,7 @@ denyAntecedent3LevelRecursTest = hasFallaciesTest input [expFallacy]
 		expr1 = parse "c <-> d"
 
 		-- building up the tree ...
-		input = expr1 `conj` (neg expr2)
+		input = expr1 `iff` (neg expr2)
 
 		expFallacy = FoundFallacy DenyAntecedent expr3 expr3
 
