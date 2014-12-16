@@ -133,8 +133,8 @@ findFallacies input@(Conditional left right) =
 			func <- fallacyFunctions, a <- variables left, b <- variables left]
 
 		inputImpliesFallacy :: (FallacyType, Expr) -> Bool
-		inputImpliesFallacy (_, (Conditional fal_left fal_right)) =
-			isTautology $ (left `cond` fal_left) `conj` (right `cond` fal_right)
+		inputImpliesFallacy (_, (Conditional falLeft falRight)) =
+			isTautology $ (left `cond` falLeft) `conj` (right `cond` falRight)
 
 		foundFallacies = filter inputImpliesFallacy fallacies
 
