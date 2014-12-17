@@ -199,6 +199,7 @@ parseKeywords (premise, conclusion) =
             varMap = makeVarMap t
             in (reduce varMap p, reduce varMap q)
 
+toLogicalForm :: String -> IO Expr
 toLogicalForm sentence = do
         t <- extractPremiseConclusionAll sentence
         let (p, q) = parseKeywords t
