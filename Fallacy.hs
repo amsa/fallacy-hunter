@@ -10,14 +10,6 @@ disj = Disjunction
 cond = Conditional
 iff = Biconditional
 
-data FallacyType = AffirmDisjunct | DenyAntecedent | AffirmConsequent
-	deriving (Show, Eq)
-
-fallacyName :: FallacyType -> String
-fallacyName AffirmDisjunct = "Affirming a Disjunct"
-fallacyName DenyAntecedent = "Denying the antecedent"
-fallacyName AffirmConsequent = "Affirming the Consequent"
-
 data FoundFallacy = FoundFallacy {
 	fallacyType :: FallacyType,
 	
@@ -32,46 +24,65 @@ data FoundFallacy = FoundFallacy {
 
 {-
 ================================================================================
-eachImplies
+all fallacies we can regonize
 ================================================================================
 
-Checks if each expression in the list implies the target expression
-
-parameters:	
-	[Expr]: a list of expressions which potentially imply the target expression
-	Expr: the target expression
-
-returns:
-	Bool: True iff each expression in the list implies the target expression
 -}
-eachImplies :: [Expr] -> Expr -> Bool
-eachImplies lefts right = all (\x -> isTautology $ x `cond` right) lefts
+
+data FallacyType = AffirmDisjunct | DenyAntecedent | AffirmConsequent
+	deriving (Show, Eq)
+
+allFallacyTypes = [AffirmDisjunct, DenyAntecedent, AffirmConsequent]
+
+fallacyName :: FallacyType -> String
+fallacyName AffirmDisjunct = "Affirming a Disjunct"
+fallacyName DenyAntecedent = "Denying the antecedent"
+fallacyName AffirmConsequent = "Affirming the Consequent"
+
+fallacyPattern :: FallacyType -> Expr
+fallacyPattern falType = parse pattern
+	where pattern = case falType of
+		AffirmDisjunct -> "((a | b) & a) -> ~b"
+		DenyAntecedent -> "((a -> b) & ~a) -> ~b"
+		AffirmConsequent -> "((a -> b) & b) -> a"
 
 
 {-
 ================================================================================
-checkFallacy
+parse
 ================================================================================
 
-Helper function for all fallacy functions.
+Shortcut for parsing expressions.
+
+parameters:
+	String:	input, parsable by Data.Logic.Propositional.parseExpr
+		
+returns:
+	Expr:	the parsed expression from the input
+-}
+
+parse :: String -> Expr
+parse input = case parseExpr "" input of
+	Left ex -> error $ "cannot parse: " ++ input
+	Right val -> val
+
+
+{-
+================================================================================
+commutations
+================================================================================
+
+Returns all equivalent but distinct expressions to the given one, resulting
+through recursive commutation of each conjunction, disjunction, and
+bidirectional implication.
 
 parameters:	
-	Expr: the input expression to be analyzed for this fallacy
-	(Expr -> Bool): fallacy matching function 
-	FallacyType: the type of the fallacy to be checked
-	Expr: the fallacy pattern with potentially replaced variables
+	Expr: input expression
 
 returns:
-	FoundFallacy: if one was found
-	Nothing: otherwise
+	[Expr]: one equivalent expression to the input for each possible commutation
+		of each part of the input
 -}
-checkFallacy :: Expr -> (Expr -> Bool) -> FallacyType -> Expr -> Maybe FoundFallacy
-checkFallacy input matchesFunc falType pattern
-	| matches 	= Just $ FoundFallacy falType pattern input
-	| otherwise = Nothing
-	where
-		matches = any matchesFunc $ commutations input
-
 commutations :: Expr -> [Expr]		
 commutations input = case input of
 	(Conjunction a b) -> commutateAB2 Conjunction a b
@@ -96,100 +107,104 @@ commutations input = case input of
 			comA <- commutations a, comB <- commutations b]	
 
 
+{-
+================================================================================
+replaceAB
+================================================================================
+
+Replaces the variables 'a' and 'b' in the given expression by the given
+variables.
+
+parameters:	
+	Expr: input expression containing only variables 'a' and 'b'
+	Expr: expression / variable to be mapped as 'a' in the input
+	Expr: expression / variable to be mapped as 'b' in the input
+
+returns:
+	Expr: input expression with 'a' and 'b' replaced be the given substitutes 
+-}
+
+replaceAB :: Expr -> Expr -> Expr -> Expr
+replaceAB input aSubst bSubst = case input of
+	(Variable (Var 'a')) -> aSubst
+	(Variable (Var 'b')) -> bSubst
+	(Negation a) -> Negation $ replaceAB a aSubst bSubst
+	(Conjunction a b) -> replace2 Conjunction a b
+	(Disjunction a b) -> replace2 Disjunction a b
+	(Conditional a b) -> replace2 Conditional a b
+	(Biconditional a b) -> replace2 Biconditional a b
+	a -> a
+	where
+		replace2 :: (Expr -> Expr -> Expr) -> Expr -> Expr -> Expr
+		replace2 construcror a b = construcror (replaceAB a aSubst bSubst)
+											   (replaceAB b aSubst bSubst)
+
+
 
 {-
 ================================================================================
-affirmDisjunct
+matchesPattern
 ================================================================================
 
-The pattern for 'Affirming a Disjunct' fallacy is
-((a | b) & a) -> ~b
+Checks if the given input expression matches the given pattern. This is true
+if the expression trees only differ at places where the pattern has leaves
+(variables). In those cases however the corresponding part in the input
+expression tree has to imply the variable in the pattern.
 
 parameters:	
-	Expr: the input expression to be analyzed for this fallacy
-	Expr: expression / variable to be mapped as 'a' in the fallacy pattern
-	Expr: expression / variable to be mapped as 'b' in the fallacy pattern
+	Expr: input expression
+	Expr: pattern
 
 returns:
-	FoundFallacy: if one was found
-	Nothing: otherwise
+	Bool: True if input matches pattern, otherwise false 
 -}
-affirmDisjunct :: Expr -> Expr -> Expr -> Maybe FoundFallacy
-affirmDisjunct input a b = checkFallacy input matches AffirmDisjunct pattern
-	where
-	pattern = ((a `disj` b) `conj` a) `cond` (neg b)
+
+matchesPattern :: Expr -> Expr -> Bool
+matchesPattern input pattern = case (input, pattern) of
+	-- remove double negations from input
+	(Negation (Negation i), p) -> matchesPattern i p
 	
-	matches (Conditional
-		(Conjunction (Disjunction inA1 inB1) inA2)
-		inNegB
-		) = (eachImplies [inA1, inA2] a) &&
-			(eachImplies [inB1] b) &&
-			(eachImplies [inNegB] (neg b))
-	matches _ = False
+	-- remove double negations from pattern
+	(i, Negation (Negation p)) -> matchesPattern i p
+	
+	(i, p@(Variable _)) -> isTautology $ i `cond` p
+	(i, p@(Negation (Variable _))) -> isTautology $ i `cond` p
+	
+	(Conjunction i1 i2, Conjunction p1 p2) -> matches2 i1 i2 p1 p2
+	(Disjunction i1 i2, Disjunction p1 p2) -> matches2 i1 i2 p1 p2
+	(Conditional i1 i2, Conditional p1 p2) -> matches2 i1 i2 p1 p2
+	(Biconditional i1 i2, Biconditional p1 p2) -> matches2 i1 i2 p1 p2
+	
+	_ -> False
+	where
+		matches2 :: Expr -> Expr -> Expr -> Expr -> Bool
+		matches2 i1 i2 p1 p2 = (matchesPattern i1 p1) &&
+							   (matchesPattern i2 p2)
 
 
 {-
 ================================================================================
-denyAntecedent
+checkFallacy
 ================================================================================
 
-The pattern for 'Denying the antecedent' fallacy is
-((a -> b) & ~a) -> ~b
+Checks whether at least one of the commutations of the input matches the given
+fallacy pattern.
 
 parameters:	
 	Expr: the input expression to be analyzed for this fallacy
-	Expr: expression / variable to be mapped as 'a' in the fallacy pattern
-	Expr: expression / variable to be mapped as 'b' in the fallacy pattern
+	(FallacyType, Expr): type and pattern of the fallacy to be checked
 
 returns:
-	FoundFallacy: if one was found
+	Just FoundFallacy: if one was found
 	Nothing: otherwise
 -}
-denyAntecedent :: Expr -> Expr -> Expr -> Maybe FoundFallacy
-denyAntecedent input a b = checkFallacy input matches DenyAntecedent pattern
+
+checkFallacy :: Expr -> (FallacyType, Expr) -> Maybe FoundFallacy
+checkFallacy input (falType, pattern)
+	| matches 	= Just $ FoundFallacy falType pattern input
+	| otherwise = Nothing
 	where
-		pattern = ((a `cond` b) `conj` (neg a)) `cond` (neg b)
-
-		matches (Conditional 
-			(Conjunction (Conditional inA inB) inNegA) 
-			inNegB
-			) = (eachImplies [inA] a) &&
-				(eachImplies [inB] b) &&
-				(eachImplies [inNegA] (neg a)) &&
-				(eachImplies [inNegB] (neg b))
-		matches _ = False
-
-
-{-
-================================================================================
-affirmConsequent
-================================================================================
-
-The pattern for 'Affirming the Consequent' fallacy is
-((a -> b) & b) -> a
-
-parameters:	
-	Expr: the input expression to be analyzed for this fallacy
-	Expr: expression / variable to be mapped as 'a' in the fallacy pattern
-	Expr: expression / variable to be mapped as 'b' in the fallacy pattern
-
-returns:
-	FoundFallacy: if one was found
-	Nothing: otherwise
--}
-affirmConsequent :: Expr -> Expr -> Expr -> Maybe FoundFallacy
-affirmConsequent input a b = checkFallacy input matches AffirmConsequent pattern
-	where
-		pattern = ((a `cond` b) `conj` b) `cond` a
-
-		matches (Conditional 
-			(Conjunction (Conditional inA1 inB1) inB2) 
-			inA2
-			) = (eachImplies [inA1, inA2] a) &&
-				(eachImplies [inB1, inB2] b)
-		matches _ = False
-
-
+		matches = any (\x -> matchesPattern x pattern) $ commutations input
 
 
 {-
@@ -225,11 +240,13 @@ findFallacies input@(Conditional inputLeft inputRight) =
 	result ++ (findFallacies inputLeft) ++ (findFallacies inputRight)
 	
 	where
-		fallacyFunctions = [affirmDisjunct, denyAntecedent, affirmConsequent]
-		
 		vars = map Variable $ variables inputLeft
 
-		maybeFallacies = [func input a b | func <- fallacyFunctions, 
-			a <- vars, b <- vars, a /= b]
+		falTypesAndPatterns = [
+			(falType, replaceAB (fallacyPattern falType) a b) |
+			falType <- allFallacyTypes, a <- vars, b <- vars, a /= b
+			]
+
+		maybeFallacies = map (checkFallacy input) falTypesAndPatterns
 
 		result = catMaybes maybeFallacies

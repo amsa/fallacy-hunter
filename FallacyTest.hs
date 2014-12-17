@@ -84,23 +84,6 @@ hasNotFallacyTest :: Expr -> FoundFallacy -> Test
 hasNotFallacyTest inputExpr unwantedFallacy = 
 	assertEqualTest False $ elem unwantedFallacy $ findFallacies inputExpr
 
-{-
-================================================================================
-parse
-================================================================================
-
-Shortcut for parsing expressions.
-
-parameters:
-	String:	input, parsable by Data.Logic.Propositional.parseExpr
-		
-returns:
-	Expr:	the parsed expression from the input
--}
-parse :: String -> Expr
-parse input = case parseExpr "" input of
-	Left ex -> error $ "cannot parse: " ++ input
-	Right val -> val
 
 {-
 ================================================================================
