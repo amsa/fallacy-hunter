@@ -48,6 +48,28 @@ eachImplies :: [Expr] -> Expr -> Bool
 eachImplies lefts right = all (\x -> isTautology $ x `cond` right) lefts
 
 
+{-
+================================================================================
+checkFallacy
+================================================================================
+
+Helper function for all fallacy functions.
+
+parameters:	
+	Expr: the input expression to be analyzed for this fallacy
+	(Expr -> Bool): fallacy matching function 
+	FallacyType: the type of the fallacy to be checked
+	Expr: the fallacy pattern with potentially replaced variables
+
+returns:
+	FoundFallacy: if one was found
+	Nothing: otherwise
+-}
+checkFallacy :: Expr -> (Expr -> Bool) -> FallacyType -> Expr -> Maybe FoundFallacy
+checkFallacy input matchesFunc falType pattern
+	| matchesFunc input = Just $ FoundFallacy falType pattern input
+	| otherwise  		= Nothing
+
 
 
 {-
@@ -68,19 +90,17 @@ returns:
 	Nothing: otherwise
 -}
 affirmDisjunct :: Expr -> Expr -> Expr -> Maybe FoundFallacy
-affirmDisjunct input a b
-	| isMatching input = Just $ FoundFallacy AffirmDisjunct pattern input
-	| otherwise  = Nothing
+affirmDisjunct input a b = checkFallacy input matches AffirmDisjunct pattern
 	where
 		pattern = ((a `disj` b) `conj` a) `cond` (neg b)
 
-		isMatching (Conditional 
+		matches (Conditional 
 			(Conjunction (Disjunction inA1 inB1) inA2) 
 			inNegB
 			) = (eachImplies [inA1, inA2] a) &&
 				(eachImplies [inB1] b) &&
 				(eachImplies [inNegB] (neg b))
-		isMatching _ = False
+		matches _ = False
 
 
 
@@ -102,20 +122,18 @@ returns:
 	Nothing: otherwise
 -}
 denyAntecedent :: Expr -> Expr -> Expr -> Maybe FoundFallacy
-denyAntecedent input a b
-	| isMatching input = Just $ FoundFallacy DenyAntecedent pattern input
-	| otherwise  = Nothing
+denyAntecedent input a b = checkFallacy input matches DenyAntecedent pattern
 	where
 		pattern = ((a `cond` b) `conj` (neg a)) `cond` (neg b)
 
-		isMatching (Conditional 
+		matches (Conditional 
 			(Conjunction (Conditional inA inB) inNegA) 
 			inNegB
 			) = (eachImplies [inA] a) &&
 				(eachImplies [inB] b) &&
 				(eachImplies [inNegA] (neg a)) &&
 				(eachImplies [inNegB] (neg b))
-		isMatching _ = False
+		matches _ = False
 
 
 {-
@@ -136,18 +154,16 @@ returns:
 	Nothing: otherwise
 -}
 affirmConsequent :: Expr -> Expr -> Expr -> Maybe FoundFallacy
-affirmConsequent input a b
-	| isMatching input = Just $ FoundFallacy AffirmConsequent pattern input
-	| otherwise  = Nothing
+affirmConsequent input a b = checkFallacy input matches AffirmConsequent pattern
 	where
 		pattern = ((a `cond` b) `conj` b) `cond` a
 
-		isMatching (Conditional 
+		matches (Conditional 
 			(Conjunction (Conditional inA1 inB1) inB2) 
 			inA2
 			) = (eachImplies [inA1, inA2] a) &&
 				(eachImplies [inB1, inB2] b)
-		isMatching _ = False
+		matches _ = False
 
 
 
