@@ -67,8 +67,33 @@ returns:
 -}
 checkFallacy :: Expr -> (Expr -> Bool) -> FallacyType -> Expr -> Maybe FoundFallacy
 checkFallacy input matchesFunc falType pattern
-	| matchesFunc input = Just $ FoundFallacy falType pattern input
-	| otherwise  		= Nothing
+	| matches 	= Just $ FoundFallacy falType pattern input
+	| otherwise = Nothing
+	where
+		matches = any matchesFunc $ commutations input
+
+commutations :: Expr -> [Expr]		
+commutations input = case input of
+	(Conjunction a b) -> commutateAB2 Conjunction a b
+	(Disjunction a b) -> commutateAB2 Disjunction a b
+	(Biconditional a b) -> commutateAB2 Biconditional a b
+	(Negation a) -> map Negation $ commutations a
+	(Conditional a b) -> commutateAB1 Conditional a b 	 
+	a -> [a]
+	where
+		commutateAB1 :: (Expr -> Expr -> Expr) -> Expr -> Expr -> [Expr]		
+		commutateAB1 construcror a b =
+			map (\vars -> construcror (fst vars) (snd vars)) comVars
+			where
+				comVars = comPairs a b		
+
+		commutateAB2 :: (Expr -> Expr -> Expr) -> Expr -> Expr -> [Expr]
+		commutateAB2 construcror a b = (commutateAB1 construcror a b) ++ 
+									   (commutateAB1 construcror b a)
+
+		comPairs :: Expr -> Expr -> [(Expr, Expr)]
+		comPairs a b = [(comA, comB) | 
+			comA <- commutations a, comB <- commutations b]	
 
 
 
@@ -92,16 +117,15 @@ returns:
 affirmDisjunct :: Expr -> Expr -> Expr -> Maybe FoundFallacy
 affirmDisjunct input a b = checkFallacy input matches AffirmDisjunct pattern
 	where
-		pattern = ((a `disj` b) `conj` a) `cond` (neg b)
-
-		matches (Conditional 
-			(Conjunction (Disjunction inA1 inB1) inA2) 
-			inNegB
-			) = (eachImplies [inA1, inA2] a) &&
-				(eachImplies [inB1] b) &&
-				(eachImplies [inNegB] (neg b))
-		matches _ = False
-
+	pattern = ((a `disj` b) `conj` a) `cond` (neg b)
+	
+	matches (Conditional
+		(Conjunction (Disjunction inA1 inB1) inA2)
+		inNegB
+		) = (eachImplies [inA1, inA2] a) &&
+			(eachImplies [inB1] b) &&
+			(eachImplies [inNegB] (neg b))
+	matches _ = False
 
 
 {-

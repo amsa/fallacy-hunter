@@ -2,9 +2,8 @@ import Test.HUnit
 import Fallacy
 
 import Data.Logic.Propositional
---tests = test [ 
---             "test triple" ~: "Triple(Max,is,cat)" ~: "Triple \"Max\" \"is\" \"cat\"" ~=? show(Triple "Max" "is" "cat")
---             ]
+
+import qualified Data.Set as Set
 
 a = var 'a'
 b = var 'b'
@@ -441,6 +440,65 @@ affirmConsequentCommutTest = hasFallaciesTest input [expFallacy]
 
 {-
 ================================================================================
+commutations1Test
+================================================================================
+-}
+commutations1Test = assertEqualTest expected actual
+	where
+		actual = Set.fromList $ map show $ commutations $ parse 
+			"(a | b) & (c <-> d)"
+		
+		expected = Set.fromList $ map show $ map parse [
+			"(a | b) & (c <-> d)",
+			"(a | b) & (d <-> c)",
+			"(b | a) & (c <-> d)",
+			"(b | a) & (d <-> c)",
+
+			"(c <-> d) & (a | b)",
+			"(d <-> c) & (a | b)",
+			"(c <-> d) & (b | a)",
+			"(d <-> c) & (b | a)"
+			]
+
+{-
+================================================================================
+commutations2Test
+================================================================================
+-}
+commutations2Test = assertEqualTest expected actual
+	where
+		actual = Set.fromList $ map show $ commutations $ parse 
+			"a | (b -> (~c & d))"
+		
+		expected = Set.fromList $ map show $ map parse [
+			"a | (b -> (~c & d))",
+			"a | (b -> (d & ~c))",
+			
+			"(b -> (~c & d)) | a",
+			"(b -> (d & ~c)) | a"
+			]
+
+
+{-
+================================================================================
+commutations3Test
+================================================================================
+-}
+commutations3Test = assertEqualTest expected actual
+	where
+		actual = Set.fromList $ map show $ commutations $ parse 
+			"b -> (~(a <-> d) & d)"
+		
+		expected = Set.fromList $ map show $ map parse [
+			"b -> (~(a <-> d) & d)",
+			"b -> (d & ~(a <-> d))",
+			
+			"b -> (~(d <-> a) & d)",
+			"b -> (d & ~(d <-> a))"
+			]
+
+{-
+================================================================================
 collection of all tests
 ================================================================================
 -}
@@ -468,5 +526,9 @@ tests = TestList [
 	TestLabel "affirmDisjCommutTest2" affirmDisjCommutTest2,
 	TestLabel "affirmDisjCommutTest3" affirmDisjCommutTest3,
 	TestLabel "denyAntecedentCommutTest" denyAntecedentCommutTest,
-	TestLabel "affirmConsequentCommutTest" affirmConsequentCommutTest
+	TestLabel "affirmConsequentCommutTest" affirmConsequentCommutTest,
+
+	TestLabel "commutations1Test" commutations1Test,
+	TestLabel "commutations2Test" commutations2Test,
+	TestLabel "commutations3Test" commutations3Test
 	]
