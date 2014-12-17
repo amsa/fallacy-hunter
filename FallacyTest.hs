@@ -380,6 +380,67 @@ denyAntecedent3LevelRecursTest = hasFallaciesTest input [expFallacy]
 
 {-
 ================================================================================
+affirmDisjCommutTest
+================================================================================
+
+The pattern for 'Affirming a Disjunct' fallacy is
+((a | b) & a) -> ~b
+
+Thus it should also be detected in all the following:
+((b | a) & a) -> ~b
+(a & (a | b)) -> ~b
+(a & (b | a)) -> ~b
+-}
+affirmDisjCommutTest :: String -> Test
+affirmDisjCommutTest inputStr = hasFallaciesTest input [expFallacy]
+	where
+		input = parse inputStr
+		pattern = parse "((a | b) & a) -> ~b"
+		expFallacy = FoundFallacy AffirmDisjunct pattern input
+
+affirmDisjCommutTest1 = affirmDisjCommutTest "((b | a) & a) -> ~b"
+affirmDisjCommutTest2 = affirmDisjCommutTest "(a & (a | b)) -> ~b"
+affirmDisjCommutTest3 = affirmDisjCommutTest "(a & (b | a)) -> ~b"
+
+
+{-
+================================================================================
+denyAntecedentCommutTest
+================================================================================
+
+The pattern for 'Denying the antecedent' fallacy is
+((a -> b) & ~a) -> ~b
+
+Thus it should also be detected in:
+(~a & (a -> b)) -> ~b
+-}
+denyAntecedentCommutTest = hasFallaciesTest input [expFallacy]
+	where
+		input = parse "(~a & (a -> b)) -> ~b"
+		pattern = parse "((a -> b) & ~a) -> ~b"
+		expFallacy = FoundFallacy DenyAntecedent pattern input
+
+
+{-
+================================================================================
+affirmConsequentCommutTest
+================================================================================
+
+The pattern for 'Affirming the Consequent' fallacy is
+((a -> b) & b) -> a
+
+Thus it should also be detected in:
+(b & (a -> b)) -> a
+-}
+affirmConsequentCommutTest = hasFallaciesTest input [expFallacy]
+	where
+		input = parse "(b & (a -> b)) -> a"
+		pattern = parse "((a -> b) & b) -> a"
+		expFallacy = FoundFallacy AffirmConsequent pattern input
+
+
+{-
+================================================================================
 collection of all tests
 ================================================================================
 -}
@@ -387,13 +448,25 @@ tests = TestList [
 	TestLabel "affirmDisjunctPosTest" affirmDisjunctPosTest,
 	TestLabel "affirmDisjunctNegTest" affirmDisjunctNegTest,
 	TestLabel "affirmDisjunctChangedVarsTest" affirmDisjunctChangedVarsTest,
+	
 	TestLabel "wrongFormatTest" wrongFormatTest,
+	
 	TestLabel "denyAntecedentPosTest" denyAntecedentPosTest,
+	
 	TestLabel "affirmConseqPosTest" affirmConseqPosTest,
+	
 	TestLabel "noFallacyTest1" noFallacyTest1,
 	TestLabel "noFallacyTest2" noFallacyTest2,
+	
 	TestLabel "affirmConseqPosTest2" affirmConseqPosTest2,
+	
 	TestLabel "affirmDisjunctRecursAndTest" affirmDisjunctRecursAndTest,
 	TestLabel "denyAntecedentRecursOrTest" denyAntecedentRecursOrTest,
-	TestLabel "denyAntecedent3LevelRecursTest" denyAntecedent3LevelRecursTest
+	TestLabel "denyAntecedent3LevelRecursTest" denyAntecedent3LevelRecursTest,
+	
+	TestLabel "affirmDisjCommutTest1" affirmDisjCommutTest1,
+	TestLabel "affirmDisjCommutTest2" affirmDisjCommutTest2,
+	TestLabel "affirmDisjCommutTest3" affirmDisjCommutTest3,
+	TestLabel "denyAntecedentCommutTest" denyAntecedentCommutTest,
+	TestLabel "affirmConsequentCommutTest" affirmConsequentCommutTest
 	]
