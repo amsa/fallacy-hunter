@@ -1,6 +1,7 @@
 module Fallacy where
 
 import Data.Logic.Propositional
+import Data.Maybe
 
 var = Variable . Var
 neg = Negation
@@ -19,9 +20,35 @@ fallacyName AffirmConsequent = "Affirming the Consequent"
 
 data FoundFallacy = FoundFallacy {
 	fallacyType :: FallacyType,
+	
+	-- the fallacy pattern with potentially replaced variables to match 
+	-- original expression
 	fallacyExpr :: Expr,
+	
+	-- the input expression in which this fallacy was detected
 	origExpr :: Expr
 	} deriving (Show, Eq)
+
+
+{-
+================================================================================
+eachImplies
+================================================================================
+
+Checks if each expression in the list implies the target expression
+
+parameters:	
+	[Expr]: a list of expressions which potentially imply the target expression
+	Expr: the target expression
+
+returns:
+	Bool: True iff each expression in the list implies the target expression
+-}
+eachImplies :: [Expr] -> Expr -> Bool
+eachImplies lefts right = all (\x -> isTautology $ x `cond` right) lefts
+
+
+
 
 {-
 ================================================================================
@@ -29,25 +56,32 @@ affirmDisjunct
 ================================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
-(a | b) & a -> ~b
+((a | b) & a) -> ~b
 
 parameters:	
-	Var: variable to be mapped as a in the formula above
-	Var: variable to be mapped as b in the formula above
+	Expr: the input expression to be analyzed for this fallacy
+	Expr: expression / variable to be mapped as 'a' in the fallacy pattern
+	Expr: expression / variable to be mapped as 'b' in the fallacy pattern
 
 returns:
-	FallacyType: the fallacy type
-	Expr: the expression as defined above with `a` and `b` being replaced 
-		by the two variables given as parameters	
+	FoundFallacy: if one was found
+	Nothing: otherwise
 -}
-
-affirmDisjunct :: Var -> Var -> (FallacyType, Expr)
-affirmDisjunct a b = (AffirmDisjunct, left `cond` right)
+affirmDisjunct :: Expr -> Expr -> Expr -> Maybe FoundFallacy
+affirmDisjunct input a b
+	| isMatching input = Just $ FoundFallacy AffirmDisjunct pattern input
+	| otherwise  = Nothing
 	where
-		aExp = Variable a
-		bExp = Variable b
-		left = (aExp `disj` bExp) `conj` aExp
-		right = (neg bExp)
+		pattern = ((a `disj` b) `conj` a) `cond` (neg b)
+
+		isMatching (Conditional 
+			(Conjunction (Disjunction inA1 inB1) inA2) 
+			inNegB
+			) = (eachImplies [inA1, inA2] a) &&
+				(eachImplies [inB1] b) &&
+				(eachImplies [inNegB] (neg b))
+		isMatching _ = False
+
 
 
 {-
@@ -56,25 +90,32 @@ denyAntecedent
 ================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
-(a -> b) & ~a -> ~b
+((a -> b) & ~a) -> ~b
 
 parameters:	
-	Var: variable to be mapped as a in the formula above
-	Var: variable to be mapped as b in the formula above
+	Expr: the input expression to be analyzed for this fallacy
+	Expr: expression / variable to be mapped as 'a' in the fallacy pattern
+	Expr: expression / variable to be mapped as 'b' in the fallacy pattern
 
 returns:
-	FallacyType: the fallacy type
-	Expr: the expression as defined above with `a` and `b` being replaced 
-		by the two variables given as parameters	
+	FoundFallacy: if one was found
+	Nothing: otherwise
 -}
-
-denyAntecedent :: Var -> Var -> (FallacyType, Expr)
-denyAntecedent a b = (DenyAntecedent, left `cond` right)
+denyAntecedent :: Expr -> Expr -> Expr -> Maybe FoundFallacy
+denyAntecedent input a b
+	| isMatching input = Just $ FoundFallacy DenyAntecedent pattern input
+	| otherwise  = Nothing
 	where
-		aExp = Variable a
-		bExp = Variable b
-		left = (aExp `cond` bExp) `conj` (neg aExp)
-		right = (neg bExp)
+		pattern = ((a `cond` b) `conj` (neg a)) `cond` (neg b)
+
+		isMatching (Conditional 
+			(Conjunction (Conditional inA inB) inNegA) 
+			inNegB
+			) = (eachImplies [inA] a) &&
+				(eachImplies [inB] b) &&
+				(eachImplies [inNegA] (neg a)) &&
+				(eachImplies [inNegB] (neg b))
+		isMatching _ = False
 
 
 {-
@@ -83,25 +124,32 @@ affirmConsequent
 ================================================================================
 
 The pattern for 'Affirming the Consequent' fallacy is
-(a -> b) & b -> a
+((a -> b) & b) -> a
 
 parameters:	
-	Var: variable to be mapped as a in the formula above
-	Var: variable to be mapped as b in the formula above
+	Expr: the input expression to be analyzed for this fallacy
+	Expr: expression / variable to be mapped as 'a' in the fallacy pattern
+	Expr: expression / variable to be mapped as 'b' in the fallacy pattern
 
 returns:
-	FallacyType: the fallacy type
-	Expr: the expression as defined above with `a` and `b` being replaced 
-		by the two variables given as parameters	
+	FoundFallacy: if one was found
+	Nothing: otherwise
 -}
-
-affirmConsequent :: Var -> Var -> (FallacyType, Expr)
-affirmConsequent a b = (AffirmConsequent, left `cond` right)
+affirmConsequent :: Expr -> Expr -> Expr -> Maybe FoundFallacy
+affirmConsequent input a b
+	| isMatching input = Just $ FoundFallacy AffirmConsequent pattern input
+	| otherwise  = Nothing
 	where
-		aExp = Variable a
-		bExp = Variable b
-		left = (aExp `cond` bExp) `conj` bExp
-		right = aExp
+		pattern = ((a `cond` b) `conj` b) `cond` a
+
+		isMatching (Conditional 
+			(Conjunction (Conditional inA1 inB1) inB2) 
+			inA2
+			) = (eachImplies [inA1, inA2] a) &&
+				(eachImplies [inB1, inB2] b)
+		isMatching _ = False
+
+
 
 
 {-
@@ -122,15 +170,6 @@ returns
 		
 -}
 
-{-
-var = Variable . Var
-neg = Negation
-conj = Conjunction
-disj = Disjunction
-cond = Conditional
-iff = Biconditional
--}
-
 findFallacies :: Expr -> [FoundFallacy]
 findFallacies (Variable _) = []
 
@@ -148,15 +187,9 @@ findFallacies input@(Conditional inputLeft inputRight) =
 	where
 		fallacyFunctions = [affirmDisjunct, denyAntecedent, affirmConsequent]
 		
-		fallacies = [func a b | func <- fallacyFunctions, 
-			a <- variables inputLeft, b <- variables inputLeft]
+		vars = map Variable $ variables inputLeft
 
-		inputImpliesFallacy :: (FallacyType, Expr) -> Bool
-		inputImpliesFallacy (_, (Conditional falLeft falRight)) =
-			isTautology $ (inputLeft `cond` falLeft) `conj` 
-						  (inputRight `cond` falRight)
+		maybeFallacies = [func input a b | func <- fallacyFunctions, 
+			a <- vars, b <- vars, a /= b]
 
-		foundFallacies = filter inputImpliesFallacy fallacies
-
-		result = [FoundFallacy falType expr input | 
-			(falType, expr) <- foundFallacies]
+		result = catMaybes maybeFallacies

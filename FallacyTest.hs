@@ -265,9 +265,9 @@ In one of our experiments the following expression was wrongly classified
 as fallacy:
 ~a & b -> ~a
 -}
---noFallacyTest1 = assertEqualTest True $ null $ findFallacies expr
---	where
---		expr = parse "(~a & b) -> ~a"
+noFallacyTest1 = assertEqualTest True $ null $ findFallacies expr
+	where
+		expr = parse "(~a & b) -> ~a"
 
 
 {-
@@ -280,9 +280,9 @@ tautology and therefore cannot be a fallacy. noFallacyTest2 is NOT a tautology
 but still does not contain any of the implemented fallacy patterns:
 a & b -> ~a
 -}
---noFallacyTest2 = assertEqualTest True $ null $ findFallacies expr
---	where
---		expr = parse "(a & b) -> ~a"
+noFallacyTest2 = assertEqualTest True $ null $ findFallacies expr
+	where
+		expr = parse "(a & b) -> ~a"
 
 
 
@@ -390,8 +390,8 @@ tests = TestList [
 	TestLabel "wrongFormatTest" wrongFormatTest,
 	TestLabel "denyAntecedentPosTest" denyAntecedentPosTest,
 	TestLabel "affirmConseqPosTest" affirmConseqPosTest,
-	--TestLabel "noFallacyTest1" noFallacyTest1,
-	--TestLabel "noFallacyTest2" noFallacyTest2,
+	TestLabel "noFallacyTest1" noFallacyTest1,
+	TestLabel "noFallacyTest2" noFallacyTest2,
 	TestLabel "affirmConseqPosTest2" affirmConseqPosTest2,
 	TestLabel "affirmDisjunctRecursAndTest" affirmDisjunctRecursAndTest,
 	TestLabel "denyAntecedentRecursOrTest" denyAntecedentRecursOrTest,
