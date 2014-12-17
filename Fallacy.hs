@@ -182,30 +182,6 @@ matchesPattern input pattern = case (input, pattern) of
 							   (matchesPattern i2 p2)
 
 
-{-
-================================================================================
-checkFallacy
-================================================================================
-
-Checks whether at least one of the commutations of the input matches the given
-fallacy pattern.
-
-parameters:	
-	Expr: the input expression to be analyzed for this fallacy
-	(FallacyType, Expr): type and pattern of the fallacy to be checked
-
-returns:
-	Just FoundFallacy: if one was found
-	Nothing: otherwise
--}
-
-checkFallacy :: Expr -> (FallacyType, Expr) -> Maybe FoundFallacy
-checkFallacy input (falType, pattern)
-	| matches 	= Just $ FoundFallacy falType pattern input
-	| otherwise = Nothing
-	where
-		matches = any (\x -> matchesPattern x pattern) $ commutations input
-
 
 {-
 ================================================================================
@@ -229,11 +205,8 @@ findFallacies :: Expr -> [FoundFallacy]
 findFallacies (Variable _) = []
 
 findFallacies (Negation a) = findFallacies a
-
 findFallacies (Conjunction a b) = (findFallacies a) ++ (findFallacies b)
-
 findFallacies (Disjunction a b) = (findFallacies a) ++ (findFallacies b)
-
 findFallacies (Biconditional a b) = (findFallacies a) ++ (findFallacies b)
 
 findFallacies input@(Conditional inputLeft inputRight) =
@@ -242,11 +215,19 @@ findFallacies input@(Conditional inputLeft inputRight) =
 	where
 		vars = map Variable $ variables inputLeft
 
+		inputCommutations = commutations input
+
+		inputMatchesPattern :: (FallacyType, Expr) -> Bool
+		inputMatchesPattern (_, pattern) =
+			any (\x -> matchesPattern x pattern) inputCommutations
+
+
 		falTypesAndPatterns = [
 			(falType, replaceAB (fallacyPattern falType) a b) |
 			falType <- allFallacyTypes, a <- vars, b <- vars, a /= b
 			]
 
-		maybeFallacies = map (checkFallacy input) falTypesAndPatterns
+		foundFallacies = filter inputMatchesPattern falTypesAndPatterns
 
-		result = catMaybes maybeFallacies
+		result = [FoundFallacy falType pattern input | 
+			(falType, pattern) <- foundFallacies]
