@@ -109,7 +109,7 @@ affirmDisjunctPosTest
 ================================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
-(a | b) & a -> ~b
+((a | b) & a) -> ~b
 
 there is asertBool which has the functionality of 'assertTrue'
 but since it is called so confusingly, I preferred the unambiguous
@@ -155,7 +155,7 @@ affirmDisjunctNegTest = hasNotFallacyTest expr unwantedFallacy
 affirmDisjunctChangedVarsTest
 ================================================================================
 The pattern for 'Affirming a Disjunct' fallacy is
-(a | b) & a -> ~b
+((a | b) & a) -> ~b
 
 This tests if the fallacy detection also works with
 (c | d) & c -> ~d
@@ -193,7 +193,7 @@ denyAntecedentPosTest
 ================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
-(a -> b) & ~a -> ~b
+((a -> b) & ~a) -> ~b
 -}
 
 denyAntecedentPosTest = hasFallaciesTest expr [expFallacy]
@@ -219,7 +219,7 @@ affirmConseqPosTest
 ================================================================================
 
 The pattern for 'Affirming the consequent' fallacy is
-(a -> b) & b -> a
+((a -> b) & b) -> a
 -}
 
 affirmConseqPosTest = hasFallaciesTest expr [expFallacy]
@@ -243,7 +243,7 @@ affirmConseqPosTest2
 ================================================================================
 
 The pattern for 'Affirming the consequent' fallacy is
-(a -> b) & b -> a
+((a -> b) & b) -> a
 
 Since some expressions, like the one in affirmConseqPosTest, contain both, 
 'Affirming the consequent' fallacy and 'Denying the antecedent' fallacy,
@@ -270,6 +270,21 @@ as fallacy:
 --		expr = parse "(~a & b) -> ~a"
 
 
+{-
+================================================================================
+noFallacyTest2
+================================================================================
+
+This is a slight but important modification of noFallacyTest1. The latter is a
+tautology and therefore cannot be a fallacy. noFallacyTest2 is NOT a tautology 
+but still does not contain any of the implemented fallacy patterns:
+a & b -> ~a
+-}
+--noFallacyTest2 = assertEqualTest True $ null $ findFallacies expr
+--	where
+--		expr = parse "(a & b) -> ~a"
+
+
 
 {-
 ================================================================================
@@ -277,7 +292,7 @@ affirmDisjunctRecursAndTest
 ================================================================================
 
 The pattern for 'Affirming a Disjunct' fallacy is
-(a | b) & a -> ~b
+((a | b) & a) -> ~b
 
 This tests if it can be found recusrively if the whole input expression is of
 type (expression1 & expression2) with (expression2 == ((d | c) & d -> ~c)). 
@@ -303,10 +318,10 @@ denyAntecedentRecursOrTest
 ================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
-(a -> b) & ~a -> ~b
+((a -> b) & ~a) -> ~b
 
 The pattern for 'Affirming the Consequent' fallacy is
-(a -> b) & b -> a
+((a -> b) & b) -> a
 
 This tests if both can be found recusrively if the whole input expression is of
 type (expression1 | expression2) with expression1 containging 'Denying the 
@@ -335,7 +350,7 @@ denyAntecedentRecursOrTest
 ================================================================================
 
 The pattern for 'Denying the antecedent' fallacy is
-(a -> b) & ~a -> ~b
+((a -> b) & ~a) -> ~b
 
 This tests if it can be found three levels deep in the recursive input 
 expression structure. The input has the form (expr1 <-> ~expr2), with 
@@ -376,6 +391,7 @@ tests = TestList [
 	TestLabel "denyAntecedentPosTest" denyAntecedentPosTest,
 	TestLabel "affirmConseqPosTest" affirmConseqPosTest,
 	--TestLabel "noFallacyTest1" noFallacyTest1,
+	--TestLabel "noFallacyTest2" noFallacyTest2,
 	TestLabel "affirmConseqPosTest2" affirmConseqPosTest2,
 	TestLabel "affirmDisjunctRecursAndTest" affirmDisjunctRecursAndTest,
 	TestLabel "denyAntecedentRecursOrTest" denyAntecedentRecursOrTest,
