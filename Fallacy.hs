@@ -14,11 +14,11 @@ data FoundFallacy = FoundFallacy {
 	fallacyType :: FallacyType,
 	
 	-- the fallacy pattern with potentially replaced variables to match 
-	-- original expression
+	-- input expression
 	fallacyExpr :: Expr,
 	
 	-- the input expression in which this fallacy was detected
-	origExpr :: Expr
+	input :: Expr
 	} deriving (Show, Eq)
 
 
