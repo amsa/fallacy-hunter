@@ -67,45 +67,6 @@ parse input = case parseExpr "" input of
 	Right val -> val
 
 
-{-
-================================================================================
-commutations
-================================================================================
-
-Returns all equivalent but distinct expressions to the given one, resulting
-through recursive commutation of each conjunction, disjunction, and
-bidirectional implication.
-
-parameters:	
-	Expr: input expression
-
-returns:
-	[Expr]: one equivalent expression to the input for each possible commutation
-		of each part of the input
--}
-commutations :: Expr -> [Expr]		
-commutations input = case input of
-	(Conjunction a b) -> commutateAB2 Conjunction a b
-	(Disjunction a b) -> commutateAB2 Disjunction a b
-	(Biconditional a b) -> commutateAB2 Biconditional a b
-	(Negation a) -> map Negation $ commutations a
-	(Conditional a b) -> commutateAB1 Conditional a b 	 
-	a -> [a]
-	where
-		commutateAB1 :: (Expr -> Expr -> Expr) -> Expr -> Expr -> [Expr]		
-		commutateAB1 construcror a b =
-			map (\vars -> construcror (fst vars) (snd vars)) comVars
-			where
-				comVars = comPairs a b		
-
-		commutateAB2 :: (Expr -> Expr -> Expr) -> Expr -> Expr -> [Expr]
-		commutateAB2 construcror a b = (commutateAB1 construcror a b) ++ 
-									   (commutateAB1 construcror b a)
-
-		comPairs :: Expr -> Expr -> [(Expr, Expr)]
-		comPairs a b = [(comA, comB) | 
-			comA <- commutations a, comB <- commutations b]	
-
 
 {-
 ================================================================================
@@ -146,10 +107,10 @@ replaceAB input aSubst bSubst = case input of
 matchesPattern
 ================================================================================
 
-Checks if the given input expression matches the given pattern. This is true
-if the expression trees only differ at places where the pattern has leaves
-(variables). In those cases however the corresponding part in the input
-expression tree has to imply the variable in the pattern.
+Checks if at least one commutation of the given input expression matches the 
+given pattern. This is true if the expression trees only differ at places where 
+the pattern has leaves (variables). In those cases however the corresponding 
+part in the input expression tree has to imply the variable in the pattern.
 
 parameters:	
 	Expr: input expression
@@ -161,25 +122,29 @@ returns:
 
 matchesPattern :: Expr -> Expr -> Bool
 matchesPattern input pattern = case (input, pattern) of
-	-- remove double negations from input
+	-- remove double negations from input and pattern
 	(Negation (Negation i), p) -> matchesPattern i p
-	
-	-- remove double negations from pattern
 	(i, Negation (Negation p)) -> matchesPattern i p
 	
 	(i, p@(Variable _)) -> isTautology $ i `cond` p
 	(i, p@(Negation (Variable _))) -> isTautology $ i `cond` p
 	
-	(Conjunction i1 i2, Conjunction p1 p2) -> matches2 i1 i2 p1 p2
-	(Disjunction i1 i2, Disjunction p1 p2) -> matches2 i1 i2 p1 p2
+	-- commutative operators
+	(Conjunction i1 i2, Conjunction p1 p2) -> matches2Com i1 i2 p1 p2
+	(Disjunction i1 i2, Disjunction p1 p2) -> matches2Com i1 i2 p1 p2
+	(Biconditional i1 i2, Biconditional p1 p2) -> matches2Com i1 i2 p1 p2
+	
 	(Conditional i1 i2, Conditional p1 p2) -> matches2 i1 i2 p1 p2
-	(Biconditional i1 i2, Biconditional p1 p2) -> matches2 i1 i2 p1 p2
 	
 	_ -> False
 	where
 		matches2 :: Expr -> Expr -> Expr -> Expr -> Bool
 		matches2 i1 i2 p1 p2 = (matchesPattern i1 p1) &&
 							   (matchesPattern i2 p2)
+		
+		matches2Com :: Expr -> Expr -> Expr -> Expr -> Bool
+		matches2Com i1 i2 p1 p2 = (matches2 i1 i2 p1 p2) ||
+							 	  (matches2 i2 i1 p1 p2)
 
 
 
@@ -215,11 +180,10 @@ findFallacies input@(Conditional inputLeft inputRight) =
 	where
 		vars = map Variable $ variables inputLeft
 
-		inputCommutations = commutations input
+		--inputCommutations = commutations input
 
 		inputMatchesPattern :: (FallacyType, Expr) -> Bool
-		inputMatchesPattern (_, pattern) =
-			any (\x -> matchesPattern x pattern) inputCommutations
+		inputMatchesPattern (_, pattern) = matchesPattern input pattern
 
 
 		falTypesAndPatterns = [
