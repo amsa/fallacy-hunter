@@ -24,7 +24,7 @@ main = forever $ do
 		inputAsFOL = toLogicalForm input tagger
 		result = findFallacies inputAsFOL
 
-	putStrLn $ "\nInput in FOL form:\n" ++ (show inputAsFOL)
+	putStrLn $ "\nInput in logical form:\n" ++ (show inputAsFOL)
 
 	putStrLn "\nFound fallacies:"
 	mapM_ print result

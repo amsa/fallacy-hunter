@@ -227,8 +227,9 @@ reduceAllDisj
 
 Reduces list of disjunctions
 -}
-reduceAllDisj :: [[Formula]] -> [Formula]
-reduceAllDisj frm = foldr (\l acc -> if length l > 1 then (reduceDisj $ reverse l):acc else (head l):acc) [] frm
+reduceAllDisj :: [Formula] -> [Formula]
+{-reduceAllDisj frm = foldr (\l acc -> if length l > 1 then (reduceDisj $ reverse l):acc else (head l):acc) [] frm-}
+reduceAllDisj frm = map (extractDisj) frm
 
 {- 
 ==========================
@@ -270,15 +271,14 @@ extractDisj
 
 Extracts disjunctions from a formula
 -}
-extractDisj :: Formula -> [Formula]
-{-extractDisj (Cond l r) = extractDisj l ++ extractDisj r-}
-extractDisj e@(Cond _ _) = [e]
-extractDisj (Conj l r) = extractDisj l ++ extractDisj r
-extractDisj (Neg p) = extractDisj p
-extractDisj (Sentence s) = 
+extractDisj :: Formula -> Formula
+extractDisj (Cond l r) = Cond (extractDisj l) (extractDisj r)
+extractDisj (Conj l r) = Conj (extractDisj l) (extractDisj r)
+extractDisj (Neg p) = Neg (extractDisj p)
+extractDisj t@(Sentence s) = 
 	if "or" `elem` (words s)
-	then map (Sentence) (Split.splitOn " or " s)
-	else [Sentence s]
+	then reduceDisj $ map (Sentence) (Split.splitOn " or " s)
+	else t
 
 {- 
 ==========================
@@ -380,8 +380,7 @@ parseKeywords (premise, conclusion) =
 		    sents = toString x 
 		    sentList = toSentList sents 
 		    ifExtracted = extractIf sentList 
-		    disjExtracted = map extractDisj ifExtracted 
-		    disjReduced = reduceAllDisj disjExtracted 
+		    disjReduced = reduceAllDisj ifExtracted 
 		    notRemoved = map extractNot disjReduced 
 		    conjReduced = reduceAllConj notRemoved
 				
