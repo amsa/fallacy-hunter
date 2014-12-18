@@ -1,16 +1,16 @@
-# About
+# Fallacy Hunter
 
-TODO
+TODO: short description
 
 
-# Installing
+## Installing
 
-### 1. Install Cabal
+#### 1. Install Cabal
 
 In case you didn't already. All infos can be found here: https://www.haskell.org/cabal/
 
 
-### 2. Install Packages
+#### 2. Install Packages
 ```
 cabal install hatt-1.5.0.3
 cabal install stemmer-0.5
@@ -18,7 +18,7 @@ cabal install chatter-0.5.0.0
 ```
 
 
-# Running
+## Running
 
 1. Change into the `src` directory of this repo
 

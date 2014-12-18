@@ -11,8 +11,10 @@ import qualified Data.List.Split as Split
 
 import qualified Data.Text as T
 import qualified Data.Char as Char 
+
 import qualified NLP.POS as POS
 import qualified NLP.Types.Tree as Types
+import NLP.Types (POSTagger)
 import NLP.Corpora.Conll (Tag)
 import NLP.Stemmer
 
@@ -47,9 +49,19 @@ main = forever $ do
 		"3. Repeat step 2 and 3 as you wish.\n"++
 		"4. Press Ctrl+C to exit."
 	putStr "> "
-	l <- getLine
-	res <- findFallaciesInSentence l
-	putStrLn $ "Found fallacies:\n" ++ show(res)
+	
+	input <- getLine
+	
+	tagger <- POS.defaultTagger
+	
+	let
+		stemmedInput = stemString input
+		boundInput = setSentBoundaries stemmedInput
+		taggedInput = tagString boundInput tagger
+		result = findFallaciesInSentence taggedInput
+
+	putStrLn $ "Found fallacies:\n" ++ (show result)
+
 
 {- tagString
 - parses the input string, and handles POS tagging
@@ -59,16 +71,16 @@ main = forever $ do
 -   (if any)
 -}
 
-tagString :: String -> IO [Types.TaggedSentence NLP.Corpora.Conll.Tag]
-tagString input = do 
-	tagger <- POS.defaultTagger
-	return (POS.tag tagger (T.pack input))
+type TaggedWords = [Types.TaggedSentence NLP.Corpora.Conll.Tag]
 
-tagStringTuple :: String -> IO [[(String, String)]]
-tagStringTuple input = do
-	taggedSents <- tagString input
-	let
-		posList = [Types.unTS x | x <- taggedSents] 
+tagString :: String -> POSTagger NLP.Corpora.Conll.Tag -> TaggedWords
+tagString input tagger = POS.tag tagger $ T.pack input
+
+
+tagStringTuple :: TaggedWords -> [[(String, String)]]
+tagStringTuple taggedWords = tags
+	where
+		posList = [Types.unTS x | x <- taggedWords] 
 		tags = map (\s -> 
 					 foldl (\acc p -> 
 						 let
@@ -76,7 +88,6 @@ tagStringTuple input = do
 							pos = T.unpack $ Types.showPOStag p
 							in acc ++ [(toLower tok, pos)]) [] s
 					) posList
-		in return (tags)
 
 toLower :: String -> String
 toLower word = map (\c -> Char.toLower c) word
@@ -102,20 +113,21 @@ removeConclusionWords = foldr (\tuple acc -> if (fst tuple) `elem` conclusionWor
 extractPremiseConclusion :: [([Char], b)] -> ([([Char], b)], [([Char], b)])
 extractPremiseConclusion = span (\e -> (fst e) `notElem` conclusionWordList) 
 
-extractPremiseConclusionAll :: String -> IO ([[(String, String)]], [[(String, String)]])
-extractPremiseConclusionAll sentence = do 
-	tagged <- tagStringTuple (setSentBoundaries $ stemString sentence)
-	let
+extractPremiseConclusionAll :: TaggedWords -> ([[(String, String)]], [[(String, String)]])
+extractPremiseConclusionAll taggedWords = (premise, conclusion)
+	where
+		tagged = tagStringTuple taggedWords
+		
 		t = map (\s -> 
 			let (p, q) = extractPremiseConclusion s 
 				in (removePunc p, removeConclusionWords $ removePunc q)
 				) tagged 
+		
 		(premise, conclusion) = foldr (\(p, q) acc ->
 			if length p > 0 
 			then (p:fst acc, snd acc) 
 			else (fst acc, q:snd acc)
 			) ([], []) t
-		in return (premise, conclusion)
 
 toString :: [[(String, b)]] -> [String]
 toString sentList = foldr (\l acc -> unwords [fst x | x <- l]:acc) [] sentList
@@ -215,17 +227,12 @@ parseKeywords (premise, conclusion) =
 		in (reduce varMap p, reduce varMap q)
 
 
-toLogicalForm :: String -> Expr
-toLogicalForm sentence = do
-	t <- extractPremiseConclusionAll sentence
-	let (p, q) = parseKeywords t
-		in Conditional p q
-
-
-findFallaciesInSentence :: String -> IO [FoundFallacy]
-findFallaciesInSentence sentence = do
-	t <- extractPremiseConclusionAll sentence
-	let
+toLogicalForm :: TaggedWords -> Expr
+toLogicalForm taggedWords = Conditional p q
+	where
+		t = extractPremiseConclusionAll taggedWords
 		(p, q) = parseKeywords t
-		result = findFallacies $ Conditional p q
-		in return (result)
+
+
+findFallaciesInSentence :: TaggedWords -> [FoundFallacy]
+findFallaciesInSentence taggedWords = findFallacies $ toLogicalForm taggedWords
