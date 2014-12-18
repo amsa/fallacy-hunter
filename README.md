@@ -39,8 +39,6 @@ cabal install chatter-0.5.0.0
 
 5. You should see the following:
 	```
-	*Fallacy.TextToFOL> main
-	
 	Instructions:
 	1. Enter sentences without quotes.
 	2. Hit Enter to start fallacy detection.
@@ -50,3 +48,18 @@ cabal install chatter-0.5.0.0
 	```
 
 6. Follow the instructions printed in the console.
+
+
+## Testing
+
+1. Follow steps 1 and 2 from _Running_
+
+2. Load the unit tests:
+	```haskell
+	Prelude> :l Fallacy/DetectInFOLTest.hs
+	```
+
+3. Run all tests:
+	```haskell
+	Prelude> runTestTT tests
+	```

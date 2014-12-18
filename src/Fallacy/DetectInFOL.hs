@@ -179,8 +179,6 @@ findFallacies input@(Conditional inputLeft inputRight) =
 	where
 		vars = map Variable $ variables inputLeft
 
-		--inputCommutations = commutations input
-
 		inputMatchesPattern :: (FallacyType, Expr) -> Bool
 		inputMatchesPattern (_, pattern) = matchesPattern input pattern
 
