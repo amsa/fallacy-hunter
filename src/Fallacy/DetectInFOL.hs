@@ -1,7 +1,6 @@
-module Fallacy where
+module Fallacy.DetectInFOL where
 
 import Data.Logic.Propositional
-import Data.Maybe
 
 var = Variable . Var
 neg = Negation
@@ -24,7 +23,7 @@ data FoundFallacy = FoundFallacy {
 
 {-
 ================================================================================
-all fallacies we can regonize
+all fallacies we can recognize
 ================================================================================
 
 -}
@@ -74,15 +73,15 @@ replaceAB
 ================================================================================
 
 Replaces the variables 'a' and 'b' in the given expression by the given
-variables.
+variables / expressions.
 
 parameters:	
 	Expr: input expression containing only variables 'a' and 'b'
-	Expr: expression / variable to be mapped as 'a' in the input
-	Expr: expression / variable to be mapped as 'b' in the input
+	Expr: expression / variable to replace 'a' in the input
+	Expr: expression / variable to replace 'b' in the input
 
 returns:
-	Expr: input expression with 'a' and 'b' replaced be the given substitutes 
+	Expr: input expression with 'a' and 'b' replaced by the given substitutes 
 -}
 
 replaceAB :: Expr -> Expr -> Expr -> Expr
