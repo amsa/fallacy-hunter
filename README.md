@@ -63,3 +63,16 @@ cabal install chatter-0.5.0.0
 	```haskell
 	Prelude> runTestTT tests
 	```
+
+
+## Examples
+
+```
+> Max is a cat or Max is a mammel. Max is a cat. Something unrelated. Thus Max is not a mammel.
+
+Input in FOL form:
+(((a ∨ c) ∧ (c ∧ b)) → ¬a)
+
+Found fallacies:
+FoundFallacy {fallacyType = AffirmDisjunct, fallacyExpr = (((c ∨ a) ∧ c) → ¬a), input = (((a ∨ c) ∧ (c ∧ b)) → ¬a)}
+```
