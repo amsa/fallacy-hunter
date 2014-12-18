@@ -39,7 +39,7 @@ sentWords (Sentence x) = words x
 
 puncList, conclusionWordList, stopWords :: [String]
 puncList = [",", ".", ";", ":"]
-conclusionWordList = ["therefore", "so", "hence"]
+conclusionWordList = ["therefore", "so", "hence", "thus"]
 stopWords = ["do", "does", "a", "an", "the", "of", "to"]
 
 main = forever $ do  
@@ -47,7 +47,7 @@ main = forever $ do
 		"1. Enter sentences without quotes.\n" ++
 		"2. Hit Enter to start fallacy detection.\n"++
 		"3. Repeat step 2 and 3 as you wish.\n"++
-		"4. Press Ctrl+C to exit."
+		"4. Press Ctrl+C to exit.\n"
 	putStr "> "
 	
 	input <- getLine
@@ -58,9 +58,12 @@ main = forever $ do
 		stemmedInput = stemString input
 		boundInput = setSentBoundaries stemmedInput
 		taggedInput = tagString boundInput tagger
-		result = findFallaciesInSentence taggedInput
+		inputAsFOL = toLogicalForm taggedInput
+		result = findFallacies inputAsFOL
 
-	putStrLn $ "Found fallacies:\n" ++ (show result)
+	putStrLn $ "\nInput in FOL form:\n" ++ (show inputAsFOL)
+
+	putStrLn $ "\nFound fallacies:\n" ++ (show result)
 
 
 {- tagString
@@ -232,7 +235,3 @@ toLogicalForm taggedWords = Conditional p q
 	where
 		t = extractPremiseConclusionAll taggedWords
 		(p, q) = parseKeywords t
-
-
-findFallaciesInSentence :: TaggedWords -> [FoundFallacy]
-findFallaciesInSentence taggedWords = findFallacies $ toLogicalForm taggedWords
