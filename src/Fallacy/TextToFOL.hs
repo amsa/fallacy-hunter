@@ -41,17 +41,16 @@ conclusionWords = ["therefore", "so", "hence", "thus"]
 stopWords = ["do", "does", "a", "an", "the", "of", "to"]
 
 
-{- tagString
-- parses the input string, and handles POS tagging
--
-- parameters:
--   String: the string that we are trying to detect containing fallacies
--   (if any)
--}
-
 type TaggedWords = [Types.TaggedSentence NLP.Corpora.Conll.Tag]
 type ConllPOSTagger = POSTagger NLP.Corpora.Conll.Tag
 
+{- tagString
+parses the input string, and handles POS tagging
+
+parameters:
+  String: the string that we are trying to detect containing fallacies
+  	(if any)
+-}
 tagString :: String -> ConllPOSTagger -> TaggedWords
 tagString input tagger = POS.tag tagger $ T.pack input
 
