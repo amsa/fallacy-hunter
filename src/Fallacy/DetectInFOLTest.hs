@@ -1,5 +1,7 @@
 import Test.HUnit
+
 import Fallacy.DetectInFOL
+import Fallacy.LogicShortcuts
 
 import Data.Logic.Propositional
 

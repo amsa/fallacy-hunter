@@ -1,13 +1,9 @@
 module Fallacy.DetectInFOL where
 
+import Fallacy.LogicShortcuts
+
 import Data.Logic.Propositional
 
-var = Variable . Var
-neg = Negation
-conj = Conjunction
-disj = Disjunction
-cond = Conditional
-iff = Biconditional
 
 data FoundFallacy = FoundFallacy {
 	fallacyType :: FallacyType,

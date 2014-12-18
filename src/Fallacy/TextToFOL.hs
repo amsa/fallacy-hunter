@@ -1,11 +1,9 @@
 module Fallacy.TextToFOL where
 
--- our module detecting fallacies given FOL expressions
-import Fallacy.DetectInFOL
+import Fallacy.LogicShortcuts
 
 import Data.Logic.Propositional
 
-import Control.Monad  
 import qualified Data.Map as M
 import qualified Data.List.Split as Split
 
@@ -27,12 +25,12 @@ data Formula = Nil
 			deriving (Eq)
 
 instance Show Formula where 
-		show (Sentence s) = "\"" ++ s ++ "\""
-		show (Neg f) = "NOT " ++ show(f)
-		show (Conj l r) = "(" ++ show(l) ++ ") AND (" ++ show(r) ++ ")"
-		show (Disj l r) = "(" ++ show(l) ++ ") OR (" ++ show(r) ++ ")"
-		show (Cond l r) = "(" ++ show(l) ++ ") => (" ++ show(r)  ++ ")"
-		show _ = ""
+	show (Sentence s) = "\"" ++ s ++ "\""
+	show (Neg f) = "NOT " ++ show(f)
+	show (Conj l r) = "(" ++ show(l) ++ ") AND (" ++ show(r) ++ ")"
+	show (Disj l r) = "(" ++ show(l) ++ ") OR (" ++ show(r) ++ ")"
+	show (Cond l r) = "(" ++ show(l) ++ ") => (" ++ show(r)  ++ ")"
+	show _ = ""
 
 sentStr (Sentence x) = x
 sentWords (Sentence x) = words x
@@ -41,32 +39,6 @@ punctuations, conclusionWords, stopWords :: [String]
 punctuations = [",", ".", ";", ":"]
 conclusionWords = ["therefore", "so", "hence", "thus"]
 stopWords = ["do", "does", "a", "an", "the", "of", "to"]
-
-main = forever $ do  
-	putStrLn $ "\nInstructions:\n" ++
-		"1. Enter sentences without quotes.\n" ++
-		"2. Hit Enter to start fallacy detection.\n"++
-		"3. Repeat step 2 and 3 as you wish.\n"++
-		"4. Press Ctrl+C to exit.\n"
-	putStr "> "
-	
-	input <- getLine
-	
-	tagger <- POS.defaultTagger
-	
-	let
-		stemmedInput = stemString input
-		boundInput = setSentBoundaries stemmedInput
-		taggedInput = tagString boundInput tagger
-		inputAsFOL = toLogicalForm taggedInput
-		result = findFallacies inputAsFOL
-
-	putStrLn $ "\nInput in FOL form:\n" ++ (show inputAsFOL)
-
-	putStrLn "\nFound fallacies:"
-	mapM_ print result
-
-	putStrLn $ "\n---------------------------------------------------\n"
 
 
 {- tagString
@@ -78,8 +50,9 @@ main = forever $ do
 -}
 
 type TaggedWords = [Types.TaggedSentence NLP.Corpora.Conll.Tag]
+type ConllPOSTagger = POSTagger NLP.Corpora.Conll.Tag
 
-tagString :: String -> POSTagger NLP.Corpora.Conll.Tag -> TaggedWords
+tagString :: String -> ConllPOSTagger -> TaggedWords
 tagString input tagger = POS.tag tagger $ T.pack input
 
 
@@ -233,8 +206,11 @@ parseKeywords (premise, conclusion) =
 		in (reduce varMap p, reduce varMap q)
 
 
-toLogicalForm :: TaggedWords -> Expr
-toLogicalForm taggedWords = Conditional p q
+toLogicalForm :: String -> ConllPOSTagger -> Expr
+toLogicalForm input tagger = Conditional p q
 	where
-		t = extractPremiseConclusionAll taggedWords
+		stemmedInput = stemString input
+		boundInput = setSentBoundaries stemmedInput
+		taggedInput = tagString boundInput tagger
+		t = extractPremiseConclusionAll taggedInput
 		(p, q) = parseKeywords t
