@@ -29,12 +29,12 @@ cabal install chatter-0.5.0.0
 
 3. Load our entry file:
 	```haskell
-	Prelude> :l Fallacy/TextToFOL.hs
+	Prelude> :l Fallacy/Main.hs
 	```
 
 4. Start the fallacy detection loop:
 	```haskell
-	*Fallacy.TextToFOL> main
+	*Main> main
 	```
 
 5. You should see the following:
