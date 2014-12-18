@@ -271,7 +271,8 @@ extractDisj
 Extracts disjunctions from a formula
 -}
 extractDisj :: Formula -> [Formula]
-extractDisj (Cond l r) = extractDisj l ++ extractDisj r
+{-extractDisj (Cond l r) = extractDisj l ++ extractDisj r-}
+extractDisj e@(Cond _ _) = [e]
 extractDisj (Conj l r) = extractDisj l ++ extractDisj r
 extractDisj (Neg p) = extractDisj p
 extractDisj (Sentence s) = 
@@ -373,22 +374,21 @@ for each side
 parseKeywords :: ([[(String, b)]], [[(String, b1)]]) -> (Expr, Expr)
 parseKeywords (premise, conclusion) = 
 	let
-		parse :: [[(String, c)]] -> Formula
-		parse x = conjReduced
-			where
-				sents = toString x
-				sentList = toSentList sents
-				ifExtracted = extractIf sentList
-				disjExtracted = map extractDisj ifExtracted
-				disjReduced = reduceAllDisj disjExtracted
-				notRemoved = map extractNot disjReduced
-				conjReduced = reduceAllConj notRemoved
-
-		p = parse premise
-		q = parse conclusion
-
-		varMap = makeVarMap (p, q)
-		in (reduce varMap p, reduce varMap q)
+        parse :: [[(String, c)]] -> Formula 
+        parse x = conjReduced 
+		where 
+		    sents = toString x 
+		    sentList = toSentList sents 
+		    ifExtracted = extractIf sentList 
+		    disjExtracted = map extractDisj ifExtracted 
+		    disjReduced = reduceAllDisj disjExtracted 
+		    notRemoved = map extractNot disjReduced 
+		    conjReduced = reduceAllConj notRemoved
+				
+        p = parse premise 
+        q = parse conclusion 
+        varMap = makeVarMap (p, q)
+        in (reduce varMap p, reduce varMap q)
 
 {- 
 ==========================
