@@ -1,0 +1,2 @@
+{-operator based information extraction-}
+
