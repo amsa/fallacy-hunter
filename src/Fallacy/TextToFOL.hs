@@ -37,9 +37,9 @@ instance Show Formula where
 sentStr (Sentence x) = x
 sentWords (Sentence x) = words x
 
-puncList, conclusionWordList, stopWords :: [String]
-puncList = [",", ".", ";", ":"]
-conclusionWordList = ["therefore", "so", "hence", "thus"]
+punctuations, conclusionWords, stopWords :: [String]
+punctuations = [",", ".", ";", ":"]
+conclusionWords = ["therefore", "so", "hence", "thus"]
 stopWords = ["do", "does", "a", "an", "the", "of", "to"]
 
 main = forever $ do  
@@ -63,7 +63,10 @@ main = forever $ do
 
 	putStrLn $ "\nInput in FOL form:\n" ++ (show inputAsFOL)
 
-	putStrLn $ "\nFound fallacies:\n" ++ (show result)
+	putStrLn "\nFound fallacies:"
+	mapM_ print result
+
+	putStrLn $ "\n---------------------------------------------------\n"
 
 
 {- tagString
@@ -108,13 +111,13 @@ stemString input =
 			in unwords $ map (stem English) $ filtered
 
 removePunc :: [(String, b)] -> [(String, b)]
-removePunc = foldr (\tuple acc -> if (fst tuple) `elem` puncList then acc else tuple:acc) []
+removePunc = foldr (\tuple acc -> if (fst tuple) `elem` punctuations then acc else tuple:acc) []
 
 removeConclusionWords :: [(String, b)] -> [(String, b)]
-removeConclusionWords = foldr (\tuple acc -> if (fst tuple) `elem` conclusionWordList then acc else tuple:acc) []
+removeConclusionWords = foldr (\tuple acc -> if (fst tuple) `elem` conclusionWords then acc else tuple:acc) []
 
 extractPremiseConclusion :: [([Char], b)] -> ([([Char], b)], [([Char], b)])
-extractPremiseConclusion = span (\e -> (fst e) `notElem` conclusionWordList) 
+extractPremiseConclusion = span (\e -> (fst e) `notElem` conclusionWords) 
 
 extractPremiseConclusionAll :: TaggedWords -> ([[(String, String)]], [[(String, String)]])
 extractPremiseConclusionAll taggedWords = (premise, conclusion)
