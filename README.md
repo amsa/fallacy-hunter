@@ -44,6 +44,7 @@ cabal install chatter-0.5.0.0
 	2. Hit Enter to start fallacy detection.
 	3. Repeat step 2 and 3 as you wish.
 	4. Press Ctrl+C to exit.
+	
 	> 
 	```
 
