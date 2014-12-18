@@ -195,14 +195,21 @@ reduce _ _ = var '_'
 parseKeywords :: ([[(String, b)]], [[(String, b1)]]) -> (Expr, Expr)
 parseKeywords (premise, conclusion) = 
 	let
-		(psents, qsents) = (toString premise, toString conclusion)
-		(psentList, qsentList) = (toSentList psents, toSentList qsents)
-		(pIfExtracted, qIfExtracted) = (extractIf psentList, extractIf qsentList)
-		(pDisjExtracted, qDisjExtracted) = (map (extractDisj) pIfExtracted, map (extractDisj) qIfExtracted)
-		(pDisjReduced, qDisjReduced) = (reduceAllDisj pDisjExtracted, reduceAllDisj qDisjExtracted)
-		(pNotRemoved, qNotRemoved) = (map (extractNot) pDisjReduced, map (extractNot) qDisjReduced)
-		t@(p, q) = (reduceAllConj pNotRemoved, reduceAllConj qNotRemoved)
-		varMap = makeVarMap t
+		parse :: [[(String, c)]] -> Formula
+		parse x = conjReduced
+			where
+				sents = toString x
+				sentList = toSentList sents
+				ifExtracted = extractIf sentList
+				disjExtracted = map extractDisj ifExtracted
+				disjReduced = reduceAllDisj disjExtracted
+				notRemoved = map extractNot disjReduced
+				conjReduced = reduceAllConj notRemoved
+
+		p = parse premise
+		q = parse conclusion
+
+		varMap = makeVarMap (p, q)
 		in (reduce varMap p, reduce varMap q)
 
 
