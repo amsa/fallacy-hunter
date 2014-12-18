@@ -14,8 +14,11 @@ data FoundFallacy = FoundFallacy {
 	
 	-- the input expression in which this fallacy was detected
 	input :: Expr
-	} deriving (Show, Eq)
+	} deriving (Eq)
 
+instance Show FoundFallacy where
+        show ff = "\t Type => " ++ show (fallacyType ff) ++ "\n" ++ 
+                  "\t Logical Form => " ++ show (fallacyExpr ff) ++ "\n"
 
 {-
 ================================================================================
@@ -24,9 +27,12 @@ all fallacies we can recognize
 
 -}
 
-data FallacyType = AffirmDisjunct | DenyAntecedent | AffirmConsequent
-	deriving (Show, Eq)
+data FallacyType = AffirmDisjunct | DenyAntecedent | AffirmConsequent deriving (Eq)
 
+instance Show FallacyType where
+        show f = fallacyName f
+
+allFallacyTypes :: [FallacyType]
 allFallacyTypes = [AffirmDisjunct, DenyAntecedent, AffirmConsequent]
 
 fallacyName :: FallacyType -> String
