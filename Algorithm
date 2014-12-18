@@ -15,5 +15,5 @@
 5. Extract the Premise and the conclusion part.
 6. Make the Premise and the conclusion part, separately into well formed expression 
     6.1 Find, NOT in the proposition, extract and apply it to the proposition as unary operator
-    6.2 Recursively apply the AND (Conj) to the list of propositions variables 
+    6.2 Recursively apply OR (Disj) and AND (Conj) to the list of propositions variables 
 
