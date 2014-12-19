@@ -1,4 +1,4 @@
-\documentclass[english]{article}
+\documentclass[14pt, english]{article}
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
 \usepackage{color}
@@ -17,7 +17,7 @@
 %% guys don't worry about names being in the date section,
 %% I did it so that  I could arange it in the order with sub title
 
-\date{Amin Saeidi, Shlomo Georg Konwisser and Aaditya Prakash}
+\date{Amin Saeidi, Georg Konwisser (Shlomo), and Aaditya Prakash}
 \usepackage{graphicx}
 \hypersetup{urlcolor=blue}
 
@@ -37,10 +37,8 @@
 In this project we investigate and build a simple fallacy detection
 system in Haskell from natural text. This project implements relation
 extraction at level sufficient to allow for conversion of natural
-text into logical form. Once the logical form is obtained, a tautological
-relation of the propositional fallacy is exploited to deduce if the
-given logical expression contains a fallacy. Because of the forementioned
-fact, this project is limited to propositional fallacies only and
+text into logical form. Once the logical form is obtained, we check if the input expression matches the pattern of the fallacy expression. Doing so we accept certain pattern variance appropriate for fallacy detection.
+This project is limited to propositional fallacies like 'affirming the disjunct', , only and
 does not support other types of fallacies, for example quantification
 fallacies and formal syllogistic fallacies. It has been aimed to keep
 the parsed input as a free natural text but certain constrained and
@@ -59,7 +57,7 @@ we decided to write our own relation extraction customized for fallacy
 proving. There were several reasons for this decision, but few of
 them were -
 
-1. Converstion to first order logic, was an overkill for our purposed
+1. Conversion to first order logic, was an overkill for our purposed
 
 2. Most of the libraries we experimented, had their fair share of
 issues with compatibility, execution or performance.
@@ -107,20 +105,20 @@ of propositions variables
 \end{enumerate}
 
 \subsection{Detecting fallacy from logical form}
-
 Once the given set of sentences were converted into logical form,
-we used the tautological expression obtained from satisfiability of
-the given set of premises implying the given conclusion as a test
-of given fallacy. We have exploited the \href{http://en.wikipedia.org/wiki/Tautology_(logic)}{definition of tautology in propositional logic},
-which extends it to any logically valid formula. Therefore we have
-tested for tautology for the given set of premises and conclusion
-impliying the given structure of fallacy (also represented in propositional
-logic). 
+we employ the following recursive pattern matching algorithm. Matching succeeds if the expression trees only differ at places where
+the fallacy expression has leaves (variables). In those cases however the corresponding
+part in the input expression tree has to imply the variable in the fallacy expression.
+In order to check this implication we evaluate if it is a tautological relation. According to our
+exploit of \href{http://en.wikipedia.org/wiki/Tautology_(logic)}{definition of tautology in propositional logic},
+tautologies are extended to any logically valid formula.
 
+Since the tree-leaf implication relies on having the same variables in input and fallacy expressions,
+we extract the variable set from the input and use it to substitute the variable set in the fallacy expression.
 
 \section{Fallacies implemented}
 
-We have implemented the detection of following propositonal fallacies-
+We have implemented the detection of following propositional fallacies-
 
 
 \subsection{Affirming the disjunct}
@@ -246,8 +244,7 @@ resolution) in our program:
 
 A brief description of each of the haskell file has been provided
 below. For detailed analsis, kindly refer to the function headers
-and inline comments in those code files.
-
+and inline comments in those code files. 
 \medskip{}
 
 
