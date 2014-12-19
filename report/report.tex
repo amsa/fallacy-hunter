@@ -75,8 +75,6 @@ the modifiers. As mentioned earlier in Abstract, we decided to focus
 only on propositional fallacies, thus we did not have to deal with
 quantifiers. Following schematic logic was used to convert the text
 to logical form.
-\begin{enumerate}
-\item Take the sentence 
 \item Set the boundaries so that seperate knowledge can be extracted. Replace
 the following explicit logic operators -
 
@@ -267,15 +265,21 @@ the fallacy.\tabularnewline
 {*}On the root folder of the submission, README.md file has been provided
 with detailed instruction on running the modules and the unit tests.
 
+\section{Challenges}
+We faced several challenges, some technical and some conceptual while building this application. One of the challenges during parsing was to be able to separate the knowledge set when a sentence had multiple conjunctions and disjunctions. Natural text is enlarge has ambiguities and we tried to limit the scope of the project so that we could make a working prototype. While detecting the fallacies, we encountered several scenarios in which only a subset of the given expression was a fallacy, thus we had to deal with search space to detect fallacies.  
 
 \section{Further Work}
 
 We see this as start of the project and envision this to extend for
-all kinds of fallacies and for much wider acceptance of text. We have
-also been working on anaphora resolution, so that simpler pronouns
+all kinds of fallacies and more sophisticated sentence structures. We 
+also plan to implement anaphora resolution, so that simple pronouns
 in the given premise may be bound to same knowledge set. Another immediate
 extension would be to extend this from propositional logic to first
 order logic so that quantification fallacies like existential fallacy
 could be detected. We also aim to make the parser work with implicit
-conclusion rather than explicit conclusion with verbal cues. 
+conclusion rather than explicit conclusion with verbal cues.
+ 
+\medskip{}
+We plan to build a web interface that allows user to enter arbitrary sentences and find the fallacy. This can also be used as educational tool for the introductory logic classes.
+
 \end{document}
