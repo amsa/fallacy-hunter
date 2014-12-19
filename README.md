@@ -1,7 +1,13 @@
 # Fallacy Hunter
 
-TODO: short description
+Although, it's not a trivial task to do but we are trying to detect logical fallacies in text!
+This is just the beginning...
 
+## Packages
+- [hatt](http://hackage.haskell.org/package/hatt-1.5.0.3)
+- [chatter](http://hackage.haskell.org/package/chatter-0.5.0.0)
+- [stemmer](https://hackage.haskell.org/package/stemmer-0.5/docs/NLP-Stemmer.html)
+- [Folly (not used yet)](https://github.com/dillonhuff/Folly)
 
 ## Installing
 
@@ -9,14 +15,12 @@ TODO: short description
 
 In case you didn't already. All infos can be found here: https://www.haskell.org/cabal/
 
-
 #### 2. Install Packages
 ```
 cabal install hatt-1.5.0.3
 cabal install stemmer-0.5
 cabal install chatter-0.5.0.0
 ```
-
 
 ## Running
 
