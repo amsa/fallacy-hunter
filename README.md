@@ -82,6 +82,29 @@ Found fallacies:
 ```
 ### Affirming the consequent
 ```
-> kkk
+> If Bill Gates owns Fort Knox, then Bill Gates is rich. Bill Gates is rich. Therefore, Bill Gates owns Fort Knox.
 
+Input in logical form:
+(((a → b) ∧ b) → a)
+
+Found fallacies:
+     Type => Affirming the consequent
+     Logical Form => (((a → b) ∧ b) → a)
+
+
+--------------------------------------------------
+```
 ### Denying the antecedent
+```
+> If Queen Elizabeth is an American Citizen, then Queen Elizabeth is a human being. Queen Elizabeth is not an American Citizen. Therefore, Queen Elizabeth is not a human being.
+
+Input in logical form:
+(((b → a) ∧ ¬b) → ¬a)
+
+Found fallacies:
+     Type => Denying the antecedent
+     Logical Form => (((b → a) ∧ ¬b) → ¬a)
+
+
+---------------------------------------------------
+                  
