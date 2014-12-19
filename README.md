@@ -1,6 +1,6 @@
 # Fallacy Hunter
 
-Although, it's not a trivial task to do but we are trying to detect logical fallacies in text!
+Although it's not a trivial task to do, but we are trying to detect logical fallacies in text! Any natural English text!
 This is just the beginning...
 
 ## Packages
