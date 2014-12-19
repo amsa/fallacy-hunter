@@ -1,6 +1,6 @@
 # Fallacy Hunter
 
-This program aims to detect the fallacies in a given set of sentences. It is assumed that these sentences comprise of few premises and a conclusion.
+This program aims to detect the fallacies in a given set of sentences. Fallacies always require premises and conclusions in the given sentences, see [Examples](https://github.com/gekonwi/brandeis.semantics.final_project#examples) below.
 
 ## External Packages
 - [hatt](http://hackage.haskell.org/package/hatt-1.5.0.3)
