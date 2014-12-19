@@ -36,9 +36,9 @@ allFallacyTypes :: [FallacyType]
 allFallacyTypes = [AffirmDisjunct, DenyAntecedent, AffirmConsequent]
 
 fallacyName :: FallacyType -> String
-fallacyName AffirmDisjunct = "Affirming a Disjunct"
+fallacyName AffirmDisjunct = "Affirming the disjunct"
 fallacyName DenyAntecedent = "Denying the antecedent"
-fallacyName AffirmConsequent = "Affirming the Consequent"
+fallacyName AffirmConsequent = "Affirming the consequent"
 
 fallacyPattern :: FallacyType -> Expr
 fallacyPattern falType = parse pattern

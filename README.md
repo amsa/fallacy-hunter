@@ -1,19 +1,17 @@
 # Fallacy Hunter
 
-Although it's not a trivial task to do, but we are trying to detect logical fallacies in text! Any natural English text!
-This is just the beginning...
+This program aims to detect the fallacies in a given set of sentences. It is assumed that these sentences comprise of few premises and a conclusion.
 
-## Packages
+## External Packages
 - [hatt](http://hackage.haskell.org/package/hatt-1.5.0.3)
 - [chatter](http://hackage.haskell.org/package/chatter-0.5.0.0)
 - [stemmer](https://hackage.haskell.org/package/stemmer-0.5/docs/NLP-Stemmer.html)
-- [Folly (not used yet)](https://github.com/dillonhuff/Folly)
 
-## Installing
+## Installation
 
 #### 1. Install Cabal
 
-In case you didn't already. All infos can be found here: https://www.haskell.org/cabal/
+Cabal is package installer for Haskell. https://www.haskell.org/cabal/
 
 #### 2. Install Packages
 ```
@@ -31,7 +29,7 @@ cabal install chatter-0.5.0.0
 	$ ghci
 	```
 
-3. Load our entry file:
+3. Load the entry module:
 	```haskell
 	Prelude> :l Fallacy/Main.hs
 	```
@@ -41,7 +39,7 @@ cabal install chatter-0.5.0.0
 	*Main> main
 	```
 
-5. You should see the following:
+5. You will see the following output:
 	```
 	Instructions:
 	1. Enter sentences without quotes.
@@ -51,8 +49,6 @@ cabal install chatter-0.5.0.0
 	
 	> 
 	```
-
-6. Follow the instructions printed in the console.
 
 
 ## Testing
@@ -72,8 +68,10 @@ cabal install chatter-0.5.0.0
 
 ## Examples
 
+### Affirming a disjunct
 ```
-> Max is a cat or Max is a mammel. Max is a cat. Something unrelated. Thus Max is not a mammel.
+> Max is a cat or Max is a mammal. Max is a cat. Therefore, Max is not a mammal.
+
 
 Input in logical form:
 (((a ∨ c) ∧ (c ∧ b)) → ¬a)
@@ -82,3 +80,8 @@ Found fallacies:
      Type => Affirming a Disjunct
      Logical Form => (((c ∨ a) ∧ c) → ¬a)
 ```
+### Affirming the consequent
+```
+> kkk
+
+### Denying the antecedent
