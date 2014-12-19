@@ -1,8 +1,8 @@
 -- our module converting free-text into FOL expressions
-import Fallacy.TextToFOL
+import Fallacy.TextToLogical
 
 -- our module detecting fallacies given FOL expressions
-import Fallacy.DetectInFOL
+import Fallacy.Detector
 
 import Control.Monad (forever)
 

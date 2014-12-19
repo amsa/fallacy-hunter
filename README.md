@@ -57,7 +57,7 @@ cabal install chatter-0.5.0.0
 
 2. Load the unit tests:
 	```haskell
-	Prelude> :l Fallacy/DetectInFOLTest.hs
+	Prelude> :l Fallacy/DetectorTest.hs
 	```
 
 3. Run all tests:
@@ -71,9 +71,10 @@ cabal install chatter-0.5.0.0
 ```
 > Max is a cat or Max is a mammel. Max is a cat. Something unrelated. Thus Max is not a mammel.
 
-Input in FOL form:
+Input in logical form:
 (((a ∨ c) ∧ (c ∧ b)) → ¬a)
 
 Found fallacies:
-FoundFallacy {fallacyType = AffirmDisjunct, fallacyExpr = (((c ∨ a) ∧ c) → ¬a), input = (((a ∨ c) ∧ (c ∧ b)) → ¬a)}
+     Type => Affirming a Disjunct
+     Logical Form => (((c ∨ a) ∧ c) → ¬a)
 ```
