@@ -14,6 +14,6 @@
 4. Tag the sentence (stemming before so that we get the same tags for the same verb but represented in different format)
 5. Extract the Premise and the conclusion part.
 6. Make the Premise and the conclusion part, separately into well formed expression 
-    6.1 Find, NOT in the proposition, extract and apply it to the proposition as unary operator
-    6.2 Recursively apply the AND (Conj) to the list of propositions variables 
+    6.1 Find, NOT in the premise, extract and apply it to the premise as unary operator
+    6.2 Recursively apply the AND (Conj) to the list of premises variables 
 
