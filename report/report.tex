@@ -15,7 +15,7 @@
 \providecommand{\tabularnewline}{\\}
 
 %% guys don't worry about names being in the date section,
-%% I did it so that  I could arange it in the order with sub title
+%% I did it so that  I could arrange it in the order with sub title
 
 \date{Amin Saeidi, Georg Konwisser (Shlomo), and Aaditya Prakash}
 \usepackage{graphicx}
@@ -47,7 +47,7 @@ structure has been assumed.
 
 \section{Design}
 
-After careful thought and experimenation with several Haskell packages
+After careful thought and experimention with several Haskell packages
 for First Order Logic conversion ( \href{https://github.com/traeger/fol-solver}{FOL Solver},
 \href{https://github.com/marcosccm/enki}{Haskell Inference Engine},
 \href{https://github.com/edwinb/Ivor}{Type Theory based theorem prover},
@@ -71,11 +71,9 @@ obtained from this class.
 One of the major challenges of this project was to be able to write
 down the provided set of sentences into logical form of simplified
 knowledge sets as premises and a conclusion. It was important to track
-the modifiers. As mentioned earlier in Abstract, we decided to focus
-only on propositional fallacies, thus we did not have to deal with
-quantifiers. Following schematic logic was used to convert the text
-to logical form.
-\item Set the boundaries so that seperate knowledge can be extracted. Replace
+the modifiers. As mentioned earlier in the abstract, we decided to implement 
+the project progressively where we first focused on propositional fallacies. For the kind of fallacies we decided to detect first, we needed the logical form of the expression. So we started implementing sentence parsing and turning the sentence into propositional logic form. Following schematic logic was used to convert the text to logical form.
+\item Set the boundaries so that separate knowledge can be extracted. Replace
 the following explicit logic operators -
 
 \begin{enumerate}
@@ -85,7 +83,7 @@ the following explicit logic operators -
 \textquotedbl{}so\textquotedbl{} with \textquotedbl{}=>\textquotedbl{} 
 \end{enumerate}
 \item Stem the Sentence as a whole (just normal stemming and not chunking)
-(Stemming seperates the sentences with \textquotedbl{}.\textquotedbl{}
+(Stemming separates the sentences with \textquotedbl{}.\textquotedbl{}
 as different array elements so that we get different knowledge set
 for separate variable) 
 \item Tag the sentence (stemming before so that we get the same tags for
@@ -190,7 +188,7 @@ Bill Gates is rich.
 Therefore, Bill Gates owns Fort Knox.
 \par\end{center}
 
-Following is the screensho of parsing the above example (without anaphora
+Following is the screenshot of parsing the above example (without anaphora
 resolution) in our program:
 
 \begin{figure}[htp]
@@ -199,8 +197,8 @@ resolution) in our program:
 
 \subsection{Denying the antecedent}
 
-Denying the antecedent is similar in strucutre to affirming the consequent
-but different in intepretation. In denying the antecedent, given a
+Denying the antecedent is similar in structure to affirming the consequent
+but different in interpretation. In denying the antecedent, given a
 conditional and invalidity of the antecedent, fallacy is to assume
 invalidity of consequent. In logical form this can be expressed as
 follows:
@@ -231,7 +229,7 @@ Queen Elizabeth is not an American citizen.
 Therefore, Queen Elizabeth is not a human being.
 \par\end{center}
 
-Following is the screensho of parsing the above example (without anaphora
+Following is the screenshot of parsing the above example (without anaphora
 resolution) in our program:
 
 \begin{figure}[htp]
@@ -240,9 +238,9 @@ resolution) in our program:
 
 \section{Code}
 
-A brief description of each of the haskell file has been provided
-below. For detailed analsis, kindly refer to the function headers
-and inline comments in those code files. 
+A brief description of each of the Haskell file has been provided
+below. For detailed analysis, kindly refer to the function headers
+and in-line comments in those code files. 
 \medskip{}
 
 
@@ -253,7 +251,7 @@ Main.hs & Serves as the entry point of the application. See README.md{*} for
 usage.\tabularnewline
 Detector.hs & Checks for fallacy, when provided with expression in propositional
 logic.\tabularnewline
-LogicalShortcuts.hs & Makes shortcuts for the logical operations in propostional logic.\tabularnewline
+LogicalShortcuts.hs & Makes shortcuts for the logical operations in propositional logic.\tabularnewline
 Tests.hs & Includes the unit tests for different modules of the application.\tabularnewline
 TextToLogical.hs & Converts the given natural text into propositional logic form for
 the fallacy.\tabularnewline
