@@ -74,11 +74,14 @@ cabal install chatter-0.5.0.0
 
 
 Input in logical form:
-(((a ∨ c) ∧ (c ∧ b)) → ¬a)
+(((b ∨ a) ∧ b) → ¬a)
 
 Found fallacies:
-     Type => Affirming a Disjunct
-     Logical Form => (((c ∨ a) ∧ c) → ¬a)
+         Type => Affirming the disjunct
+         Logical Form => (((b ∨ a) ∧ b) → ¬a)
+
+
+---------------------------------------------------
 ```
 ### Affirming the consequent
 ```
