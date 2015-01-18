@@ -1,6 +1,7 @@
 module Fallacy.TextToLogical where
 
 import Fallacy.LogicalShortcuts
+import Prelude
 
 import Data.Logic.Propositional
 
@@ -26,10 +27,10 @@ data Formula = Nil
 
 instance Show Formula where 
 	show (Sentence s) = "\"" ++ s ++ "\""
-	show (Neg f) = "NOT " ++ show(f)
-	show (Conj l r) = "(" ++ show(l) ++ ") AND (" ++ show(r) ++ ")"
-	show (Disj l r) = "(" ++ show(l) ++ ") OR (" ++ show(r) ++ ")"
-	show (Cond l r) = "(" ++ show(l) ++ ") => (" ++ show(r)  ++ ")"
+	show (Neg f) = "NOT " ++ show f
+	show (Conj l r) = "(" ++ show l ++ ") AND (" ++ show r ++ ")"
+	show (Disj l r) = "(" ++ show l ++ ") OR (" ++ show r ++ ")"
+	show (Cond l r) = "(" ++ show l ++ ") => (" ++ show r  ++ ")"
 	show _ = ""
 
 punctuations, conclusionWords, stopWords :: [String]
@@ -108,7 +109,7 @@ toLower
 Convert the case of the characters of a given word to lower case
 -}
 toLower :: String -> String
-toLower word = map (\c -> Char.toLower c) word
+toLower = map Char.toLower
 
 {- 
 ==========================
@@ -196,7 +197,7 @@ toString
 Converts the list of tuples with words and POS to a list of words of the sentence
 -}
 toString :: [[(String, b)]] -> [String]
-toString sentList = foldr (\l acc -> unwords [fst x | x <- l]:acc) [] sentList
+toString = foldr (\l acc -> unwords [fst x | x <- l]:acc) []
 
 {- 
 ==========================
@@ -229,7 +230,7 @@ Reduces list of disjunctions
 -}
 reduceAllDisj :: [Formula] -> [Formula]
 {-reduceAllDisj frm = foldr (\l acc -> if length l > 1 then (reduceDisj $ reverse l):acc else (head l):acc) [] frm-}
-reduceAllDisj frm = map (extractDisj) frm
+reduceAllDisj = map extractDisj
 
 {- 
 ==========================
@@ -276,8 +277,8 @@ extractDisj (Cond l r) = Cond (extractDisj l) (extractDisj r)
 extractDisj (Conj l r) = Conj (extractDisj l) (extractDisj r)
 extractDisj (Neg p) = Neg (extractDisj p)
 extractDisj t@(Sentence s) = 
-	if "or" `elem` (words s)
-	then reduceDisj $ map (Sentence) (Split.splitOn " or " s)
+	if "or" `elem` words s
+	then reduceDisj $ map Sentence (Split.splitOn " or " s)
 	else t
 
 {- 
@@ -288,7 +289,7 @@ extractNot
 Extracts negations from a formula
 -}
 extractNot :: Formula -> Formula
-extractNot t@(Sentence s) = if "not" `elem` (words s) then (Neg $ Sentence (removeWord "not" s)) else t
+extractNot t@(Sentence s) = if "not" `elem` words s then Neg $ Sentence $ removeWord "not" s else t
 extractNot (Cond l r) = Cond (extractNot l) (extractNot r)
 extractNot (Conj l r) = Conj (extractNot l) (extractNot r)
 extractNot (Disj l r) = Disj (extractNot l) (extractNot r)
@@ -317,7 +318,7 @@ toSentList
 Converts a list of sentences into a a list of formulas (of type Sentence)
 -}
 toSentList :: [String] -> [Formula]
-toSentList = map (Sentence)
+toSentList = map Sentence
 
 {- 
 ==========================
@@ -330,7 +331,7 @@ makeVarMap :: (Formula, Formula) -> M.Map [Char] Char
 makeVarMap (premise, conclusion) = 
 	let
 		lst = premise:[conclusion]
-		sentList = foldr (\s acc -> (extractSent s) ++ acc ) [] lst
+		sentList = foldr (\s acc -> extractSent s ++ acc) [] lst
 		varMap = foldr (\sent acc -> if M.member sent acc 
 									then acc 
 									else M.insert sent (Char.chr(M.size acc+96)) acc

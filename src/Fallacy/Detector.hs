@@ -1,7 +1,7 @@
 module Fallacy.Detector where
 
+import Prelude
 import Fallacy.LogicalShortcuts
-
 import Data.Logic.Propositional
 
 
@@ -30,7 +30,7 @@ all fallacies we can recognize
 data FallacyType = AffirmDisjunct | DenyAntecedent | AffirmConsequent deriving (Eq)
 
 instance Show FallacyType where
-        show f = fallacyName f
+        show = fallacyName
 
 allFallacyTypes :: [FallacyType]
 allFallacyTypes = [AffirmDisjunct, DenyAntecedent, AffirmConsequent]
@@ -140,12 +140,12 @@ matchesPattern input pattern = case (input, pattern) of
 	_ -> False
 	where
 		matches2 :: Expr -> Expr -> Expr -> Expr -> Bool
-		matches2 i1 i2 p1 p2 = (matchesPattern i1 p1) &&
-							   (matchesPattern i2 p2)
+		matches2 i1 i2 p1 p2 = matchesPattern i1 p1 &&
+							   matchesPattern i2 p2
 		
 		matches2Com :: Expr -> Expr -> Expr -> Expr -> Bool
-		matches2Com i1 i2 p1 p2 = (matches2 i1 i2 p1 p2) ||
-							 	  (matches2 i2 i1 p1 p2)
+		matches2Com i1 i2 p1 p2 = matches2 i1 i2 p1 p2 ||
+							 	  matches2 i2 i1 p1 p2
 
 
 
@@ -171,12 +171,12 @@ findFallacies :: Expr -> [FoundFallacy]
 findFallacies (Variable _) = []
 
 findFallacies (Negation a) = findFallacies a
-findFallacies (Conjunction a b) = (findFallacies a) ++ (findFallacies b)
-findFallacies (Disjunction a b) = (findFallacies a) ++ (findFallacies b)
-findFallacies (Biconditional a b) = (findFallacies a) ++ (findFallacies b)
+findFallacies (Conjunction a b) = findFallacies a ++ findFallacies b
+findFallacies (Disjunction a b) = findFallacies a ++ findFallacies b
+findFallacies (Biconditional a b) = findFallacies a ++ findFallacies b
 
 findFallacies input@(Conditional inputLeft inputRight) =
-	result ++ (findFallacies inputLeft) ++ (findFallacies inputRight)
+	result ++ findFallacies inputLeft ++ findFallacies inputRight
 	
 	where
 		vars = map Variable $ variables inputLeft

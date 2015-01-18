@@ -1,6 +1,7 @@
 module Fallacy.LogicalShortcuts where
 
 import Data.Logic.Propositional
+import Prelude
 
 var = Variable . Var
 neg = Negation
