@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import System.Environment
 import Control.Monad.Trans (liftIO)
-import Control.Monad (msum)
+import Control.Monad (msum, liftM)
 import Happstack.Server
 import qualified Data.Text as T
 import           Text.Blaze ((!))
@@ -16,32 +17,39 @@ import Detector
 myPolicy :: BodyPolicy
 myPolicy = defaultBodyPolicy "/tmp/" 0 1000 1000
 
+myConf :: Int -> Conf
+myConf p = Conf
+    { port      = p
+    , validator = Nothing
+    , logAccess = Just logMAccess
+    , timeout   = 30
+    , threadGroup = Nothing
+    }
+
 myApp :: ServerPart Response
 myApp = do decodeBody myPolicy 
            msum [ 
-             dir "detect" $ detect,
+             dir "detect" detect,
              home 
              ]
 
-appTemplate :: String -> [H.Html] -> H.Html -> H.Html
-appTemplate title headers body =
+appTemplate :: String -> H.Html -> H.Html
+appTemplate title body =
     H.html $ do
       H.head $ do
         H.title (H.toHtml title)
         H.meta ! A.httpEquiv "Content-Type"
                ! A.content "text/html;charset=utf-8"
-        sequence_ headers
-      H.body $ do
+        {-sequence_ headers-}
+      H.body
         body
 
 home :: ServerPart Response
 home =
     do method GET
        ok $ toResponse $
-        H.html $ do
-         H.head $ do
-         H.title "FallacyHunter"
-         H.body $ do
+        appTemplate "FallacyHunter" $
+         H.div $ do
           H.p "Please enter your sentence(s) in the following text box and press submit:"
           H.form ! A.enctype "multipart/form-data"
                  ! A.method "POST"
@@ -51,37 +59,40 @@ home =
                      H.p $ do
                        H.input ! A.type_ "submit" ! A.value "Submit"
 
-fallacies input = 
-        do 
+detect :: ServerPart Response
+detect =
+   do method POST
+      input <- lookText' "text"
+      (lf, result) <- liftIO $ fallacies input
+      ok $ toResponse $ appTemplate "Fallacy Detector" (mkBody input lf result)
+    where
+      mkBody text lf result = do
+            H.p $ do 
+                   H.b $ H.toHtml $ T.pack "Input: "  
+                   H.toHtml text
+            H.p $ do 
+                   H.b $ H.toHtml $ T.pack "Logical Form: "  
+                   H.toHtml lf
+            H.p $ do 
+                   H.b $ H.toHtml $ T.pack "Detected Fallacies: "  
+                   H.toHtml result
+            H.a ! A.href "/detect" $ "Try again"
+
+      fallacies input = do 
            tagger <- POS.defaultTagger 
            let logicalForm = toLogicalForm (T.unpack input) tagger 
                result = findFallacies logicalForm 
                in return (toText logicalForm, toText result)
                where toText x = T.pack $ show x
 
-detect :: ServerPart Response
-detect =
-   do method POST
-      input <- lookText' "text"
-      (lf, result) <- liftIO $ fallacies input
-      ok $ toResponse $
-         H.html $ do
-           H.head $ do
-             H.title "Fallacy Detector"
-           H.body $ mkBody input lf result
-    where
-      mkBody text lf result = do
-        H.p $ do 
-               H.b $ H.toHtml $ T.pack "Input: "  
-               H.toHtml text
-        H.p $ do 
-               H.b $ H.toHtml $ T.pack "Logical Form: "  
-               H.toHtml $ lf
-        H.p $ do 
-               H.b $ H.toHtml $ T.pack "Detected Fallacies: "  
-               H.toHtml $ result
-        H.a ! A.href "/detect" $ "Try again"
+
+
+getPort = do 
+             port <- lookupEnv "PORT"
+             case port of Nothing -> return 8000 
+                          Just x  -> return (read x :: Int)
 
 main :: IO ()
-main = simpleHTTP nullConf myApp
-{-main = simpleHTTP nullConf $ ok "Hello, World!"-}
+main = do 
+          port <- getPort
+          simpleHTTP (myConf port) myApp
