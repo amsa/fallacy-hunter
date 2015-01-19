@@ -2,11 +2,6 @@
 
 This program aims to detect the fallacies in a given set of sentences. Fallacies always require premises and conclusions in the given sentences, see [Examples](https://github.com/gekonwi/brandeis.semantics.final_project#examples) below.
 
-## External Packages
-- [hatt](http://hackage.haskell.org/package/hatt-1.5.0.3)
-- [chatter](http://hackage.haskell.org/package/chatter-0.5.0.0)
-- [stemmer](https://hackage.haskell.org/package/stemmer-0.5/docs/NLP-Stemmer.html)
-
 ## Installation
 
 #### 1. Install Cabal
@@ -15,31 +10,28 @@ Cabal is package installer for Haskell. https://www.haskell.org/cabal/
 
 #### 2. Install Packages
 ```
-cabal install hatt-1.5.0.3
-cabal install stemmer-0.5
-cabal install chatter-0.5.0.0
+cd fallacy-hunter
+cabal sandbox init  (optional) 
+cabal install 
 ```
 
-## Running
-
-1. Change into the `src` directory of this repo
-
-2. Start GHCI:
+## Running in GHCI
+1. Start GHCI:
 	```
 	$ ghci
 	```
 
-3. Load the entry module:
+2. Load the entry module:
 	```haskell
 	Prelude> :l Fallacy/Main.hs
 	```
 
-4. Start the fallacy detection loop:
+3. Start the fallacy detection loop:
 	```haskell
 	*Main> main
 	```
 
-5. You will see the following output:
+4. You will see the following output:
 	```
 	Instructions:
 	1. Enter sentences without quotes.
@@ -50,6 +42,15 @@ cabal install chatter-0.5.0.0
 	> 
 	```
 
+## Running Web Application
+In your terminal try:
+```
+$ fallacy-hunter
+```
+or if you installed it in a sandbox try running:
+```
+$ ./.cabal-sandbox/bin/fallacy-hunter
+```
 
 ## Testing
 
