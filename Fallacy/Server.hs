@@ -10,11 +10,11 @@ import qualified Text.Blaze.Html4.Strict as H
 import qualified Text.Blaze.Html4.Strict.Attributes as A
 
 import qualified NLP.POS as POS
-import Fallacy.TextToLogical
-import Fallacy.Detector
+import TextToLogical
+import Detector
 
 myPolicy :: BodyPolicy
-myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
+myPolicy = defaultBodyPolicy "/tmp/" 0 1000 1000
 
 myApp :: ServerPart Response
 myApp = do decodeBody myPolicy 

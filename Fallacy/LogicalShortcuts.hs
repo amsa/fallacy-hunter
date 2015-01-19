@@ -1,4 +1,4 @@
-module Fallacy.LogicalShortcuts where
+module LogicalShortcuts where
 
 import Data.Logic.Propositional
 import Prelude

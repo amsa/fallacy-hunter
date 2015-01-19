@@ -1,7 +1,7 @@
-module Fallacy.Detector where
+module Detector where
 
 import Prelude
-import Fallacy.LogicalShortcuts
+import LogicalShortcuts
 import Data.Logic.Propositional
 
 

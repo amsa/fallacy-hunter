@@ -1,6 +1,6 @@
-module Fallacy.TextToLogical where
+module TextToLogical where
 
-import Fallacy.LogicalShortcuts
+import LogicalShortcuts
 import Prelude
 
 import Data.Logic.Propositional
