@@ -51,6 +51,7 @@ or if you installed it in a sandbox try running:
 ```
 $ ./.cabal-sandbox/bin/fallacy-hunter
 ```
+Now go to [http://localhost:8000](http://localhost:8000) from your browser.
 
 ## Testing
 
