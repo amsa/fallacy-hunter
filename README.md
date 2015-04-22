@@ -1,6 +1,11 @@
 # Fallacy Hunter
 
-This program aims to detect the fallacies in a given set of sentences. Fallacies always require premises and conclusions in the given sentences, see [Examples](https://github.com/gekonwi/brandeis.semantics.final_project#examples) below.
+This is a proof of concept to demonstrate the possiblity of detecting some logical fallacies in text.
+In this version we made some assumptions to simplify the problem, and for now simple sentences are supported, as most of the computational linguistic problems such as anaphora/cataphora resolution and other semantic problems need to be handled. 
+
+For demonstration purposes, the following three kinds of fallacies have been chosen. 
+
+*Note:* fallacies always require premises and conclusions in the given sentences. See the [examples](#examples).
 
 ## Installation
 
@@ -14,6 +19,18 @@ cd fallacy-hunter
 cabal sandbox init  (optional) 
 cabal install 
 ```
+
+## Running Web Application (Recommended)
+In your terminal try:
+```
+$ fallacy-hunter
+```
+or if you installed it in a sandbox try running:
+```
+$ ./.cabal-sandbox/bin/fallacy-hunter
+```
+Now go to [http://localhost:8000](http://localhost:8000) from your browser.
+
 
 ## Running in GHCI
 1. Start GHCI:
@@ -42,16 +59,6 @@ cabal install
 	> 
 	```
 
-## Running Web Application
-In your terminal try:
-```
-$ fallacy-hunter
-```
-or if you installed it in a sandbox try running:
-```
-$ ./.cabal-sandbox/bin/fallacy-hunter
-```
-Now go to [http://localhost:8000](http://localhost:8000) from your browser.
 
 ## Testing
 
@@ -113,3 +120,10 @@ Found fallacies:
 
 ---------------------------------------------------
                   
+```
+
+## Contributors
+- [Amin Saeidi](//github.com/amsa)
+- [Aaditya Prakash](//github.com/iamaaditya)
+- [Shlomo Georg Konwisser](//github.com/gekonwi)
+
